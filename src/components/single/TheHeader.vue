@@ -15,7 +15,7 @@
                      :key="index"
                      link
         >
-          <v-list-item-title>{{ item.title }}</v-list-item-title>
+          <v-list-item-title @click="onMenuItemClick(item)">{{ item.title }}</v-list-item-title>
         </v-list-item>
       </v-list>
     </v-menu>
@@ -23,6 +23,8 @@
 </template>
 
 <script>
+import { mapActions } from 'vuex';
+
 export default {
   name: 'TheHeader',
 
@@ -34,9 +36,19 @@ export default {
         },
         {
           title: 'Выход',
+          action: () => {
+            this.logOut();
+          },
         },
       ],
     };
+  },
+
+  methods: {
+    ...mapActions('user', ['logOut']),
+    onMenuItemClick(item) {
+      if (item.action) item.action();
+    },
   },
 };
 </script>
