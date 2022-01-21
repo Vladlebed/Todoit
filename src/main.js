@@ -7,6 +7,7 @@ import store from './store';
 
 import vuetify from './plugins/vuetify';
 import 'firebase/database';
+import i18n from './i18n';
 
 // Initialize Firebase
 firebase.initializeApp({
@@ -29,6 +30,7 @@ firebase.auth().onAuthStateChanged(() => {
       router,
       store,
       vuetify,
+      i18n,
       render: (h) => h(App),
     }).$mount('#app');
   }
