@@ -16,6 +16,7 @@ firebase.initializeApp({
   storageBucket: 'todo-801f0.appspot.com',
   messagingSenderId: '986536909373',
   appId: '1:986536909373:web:589a62c2dd40042b176854',
+  databaseURL: 'https://todo-801f0-default-rtdb.firebaseio.com/',
 });
 
 Vue.config.productionTip = false;
