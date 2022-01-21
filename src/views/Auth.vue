@@ -46,8 +46,11 @@ export default {
       const uiConfig = {
         signInSuccessUrl: '/',
         signInOptions: [
+          {
+            provider: firebase.auth.PhoneAuthProvider.PROVIDER_ID,
+            defaultCountry: 'RU',
+          },
           firebase.auth.GoogleAuthProvider.PROVIDER_ID,
-          firebase.auth.PhoneAuthProvider.PROVIDER_ID,
         ],
       };
 
