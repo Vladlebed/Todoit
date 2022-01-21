@@ -1,12 +1,12 @@
 <template>
-  <div>
+  <div class="primary">
     <the-header />
     <v-container fluid>
       <v-layout v-if="currentWorkspace" column fill-height>
         <v-row>
           <v-col>
             <v-flex>
-              <v-btn class="primary" @click="createColumn">Добавить колонку</v-btn>
+              <v-btn class="white--text green" @click="createColumn">{{$t('createColumn')}}</v-btn>
             </v-flex>
           </v-col>
         </v-row>
@@ -30,6 +30,17 @@ export default {
   name: 'Dashboard',
 
   components: { TheHeader, VTodoColumn },
+
+  i18n: {
+    messages: {
+      ru: {
+        createColumn: 'Создать колонку',
+      },
+      en: {
+        createColumn: 'create column',
+      },
+    },
+  },
 
   computed: {
     ...mapGetters('workspace', ['currentWorkspace']),

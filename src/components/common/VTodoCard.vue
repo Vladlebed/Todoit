@@ -1,10 +1,10 @@
 <template>
   <v-card class="mt-4 pa-4" elevation="2">
-    <v-text-field v-model="cardPropertiesSnapshot.name" label="Название карточки" />
-    <v-textarea v-model="cardPropertiesSnapshot.text" label="Текст карточки" />
+    <v-text-field v-model="cardPropertiesSnapshot.name" :label="$t('name')" />
+    <v-textarea v-model="cardPropertiesSnapshot.text" :label="$t('text')" dense />
     <v-card-actions>
-      <v-btn x-small @click="onCardRemove">Удалить карточку</v-btn>
-      <v-checkbox v-model="cardPropertiesSnapshot.isCompleted" label="Завершено" class="ml-4" />
+      <v-btn x-small @click="onCardRemove">{{ $t('removeCard') }}</v-btn>
+      <v-checkbox v-model="cardPropertiesSnapshot.isCompleted" :label="$t('isCompleted')" class="ml-4" />
     </v-card-actions>
   </v-card>
 </template>
@@ -24,6 +24,23 @@ export default {
     cardData: {
       type: Object,
       default: () => ({}),
+    },
+  },
+
+  i18n: {
+    messages: {
+      ru: {
+        name: 'Название карточки',
+        text: 'Текст карточки',
+        removeCard: 'Удалить карточку',
+        isCompleted: 'Завершено',
+      },
+      en: {
+        name: 'Title',
+        text: 'Text',
+        removeCard: 'Remove card',
+        isCompleted: 'Completed',
+      },
     },
   },
 

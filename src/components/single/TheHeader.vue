@@ -1,25 +1,19 @@
 <template>
   <v-app-bar>
     <v-btn color="primary" @click="showDialog">
-      {{currentWorkspace && currentWorkspace.data.workspaceProperties.name || 'Рабочий стол'}}
+      {{currentWorkspace && currentWorkspace.data.workspaceProperties.name || $t('workspaceAction')}}
     </v-btn>
 
     <v-spacer />
 
     <v-menu offset-y>
       <template v-slot:activator="{ on, attrs }">
-        <v-btn color="primary"
-               v-bind="attrs"
-               v-on="on"
-        >
-          Аккаунт
+        <v-btn color="primary" v-bind="attrs" v-on="on">
+          {{ $t('menuName') }}
         </v-btn>
       </template>
       <v-list>
-        <v-list-item v-for="(item, index) in menu"
-                     :key="index"
-                     link
-        >
+        <v-list-item v-for="(item, index) in menu" :key="index" link>
           <v-list-item-title @click="onMenuItemClick(item)">{{ item.title }}</v-list-item-title>
         </v-list-item>
       </v-list>
@@ -28,15 +22,15 @@
     <v-dialog v-model="dialog.show" width="500">
       <v-card>
         <v-card-title class="text-h5 grey lighten-2">
-          Создание/выбор рабочего стола
+          {{ $t('dialog.title') }}
         </v-card-title>
 
         <div class="pa-4 pb-0">
           <v-select v-model="currentWorkspace"
                     :items="this.workspace.list"
                     :item-text="(v) => v.data.workspaceProperties.name"
-                    label="Рабочий стол"
-                    no-data-text="Нет рабочих столов"
+                    :label="$t('dialog.workspaceSelect')"
+                    :no-data-text="$t('dialog.noData')"
                     outlined
                     return-object
                     dense
@@ -44,18 +38,26 @@
         </div>
 
         <v-form class="pa-4" @submit.prevent="onCreateWorkspace">
-          <v-text-field v-model="dialog.workspaceName" label="Название нового рабочего стола" outlined dense />
+          <v-text-field v-model="dialog.workspaceName"
+                        :label="$t('dialog.workspaceCreateInput')"
+                        outlined
+                        dense
+          />
         </v-form>
 
         <v-divider></v-divider>
 
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="primary" :disabled="!dialog.workspaceName" text @click="onCreateWorkspace">
-            Создать
+          <v-btn color="primary"
+                 :disabled="!dialog.workspaceName"
+                 text
+                 @click="onCreateWorkspace"
+          >
+            {{ $t('dialog.createBtn') }}
           </v-btn>
           <v-btn color="gray" text @click="hideDialog">
-            закрыть
+            {{ $t('dialog.cancelBtn') }}
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -77,16 +79,53 @@ export default {
       },
       menu: [
         {
-          title: 'Настройки',
+          title: this.$t('menu.settings'),
         },
         {
-          title: 'Выход',
+          title: this.$t('menu.logout'),
           action: () => {
             this.logOut();
           },
         },
       ],
     };
+  },
+
+  i18n: {
+    messages: {
+      ru: {
+        menuName: 'Меню',
+        menu: {
+          settings: 'Настройки',
+          logout: 'Выход',
+        },
+        workspaceAction: 'Рабочий стол',
+        dialog: {
+          title: 'Создание/выбор рабочего стола',
+          workspaceSelect: 'Рабочий стол',
+          noData: 'Нет рабочих столов',
+          workspaceCreateInput: 'Название нового рабочего стола',
+          createBtn: 'Создать',
+          cancelBtn: 'Отменить',
+        },
+      },
+      en: {
+        menuName: 'Account',
+        menu: {
+          settings: 'Settings',
+          logout: 'Log out',
+        },
+        workspaceAction: 'workspace',
+        dialog: {
+          title: 'Workspace select/create',
+          workspaceSelect: 'Workspace',
+          noData: 'No workspaces',
+          workspaceCreateInput: 'Name of the new desktop',
+          createBtn: 'Create',
+          cancelBtn: 'Abort',
+        },
+      },
+    },
   },
 
   computed: {
