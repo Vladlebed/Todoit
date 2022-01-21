@@ -1,57 +1,57 @@
 <template>
   <v-card class="mt-4 pa-4" elevation="2">
-    <v-text-field v-model="computedCardData.title" label="Название карточки" />
-    <v-textarea v-model="computedCardData.text" label="Текст карточки" />
+    <v-text-field v-model="cardPropertiesSnapshot.name" label="Название карточки" />
+    <v-textarea v-model="cardPropertiesSnapshot.text" label="Текст карточки" />
     <v-card-actions>
-      <v-btn x-small @click="removeCard">Удалить карточку</v-btn>
-      <v-checkbox v-model="computedCardData.completed" label="Завершено" class="ml-4" />
+      <v-btn x-small @click="onCardRemove">Удалить карточку</v-btn>
+      <v-checkbox v-model="cardPropertiesSnapshot.isCompleted" label="Завершено" class="ml-4" />
     </v-card-actions>
-
   </v-card>
 </template>
 
 <script>
+import { mapActions } from 'vuex';
+import { debounce, cloneDeep } from 'lodash';
+
 export default {
   name: 'VTodoCard',
 
   props: {
-    cardData: {
+    column: {
       type: Object,
       default: () => ({}),
     },
-    index: {
-      type: Number,
+    cardData: {
+      type: Object,
+      default: () => ({}),
     },
   },
 
   data() {
     return {
-
+      cardPropertiesSnapshot: {},
     };
   },
 
-  computed: {
-    computedCardData: {
-      get() {
-        return this.cardData;
-      },
-      set(v) {
-        this.$emit('change-card', {
-          cardIndex: this.index,
-          oldValue: this.cardData,
-          newValue: v,
-        });
-      },
-    },
+  created() {
+    this.cardPropertiesSnapshot = cloneDeep(this.cardData.data.cardProperties);
+    this.$watch('cardPropertiesSnapshot', debounce((ev) => {
+      this.changeCard({ columnUid: this.column.uid, cardUid: this.cardData.uid, cardProperties: ev });
+    }, 300), { deep: true });
   },
 
   methods: {
-    removeCard() {
-      this.$emit('remove-card', {
-        card: this.cardData,
-        cardIndex: this.index,
+    ...mapActions('workspace', ['removeCard', 'changeCard']),
+
+    onCardRemove() {
+      this.removeCard({
+        columnUid: this.column.uid,
+        cardUid: this.cardData.uid,
       });
     },
+    // debouncedSaveCardProperties: debounce(function (ev) {
+    //   this.changeCard({ columnUid: this.column.uid, cardUid: this.cardData.uid, cardProperties: ev });
+    // }, 300),
   },
 };
 </script>
