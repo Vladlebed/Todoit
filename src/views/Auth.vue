@@ -1,12 +1,16 @@
 <template>
   <v-layout fill-height class="primary d-flex justify-center align-center overflow-hidden">
     <v-card class="pa-4" width="400">
+      <div class="text-center">
+        <span class="text-h1">TODO</span>
+      </div>
+
       <v-form class="text-center mb-4" @submit.prevent="onAuthWithEmailForm">
         <v-text-field v-model="email" label="Email"/>
-        <v-text-field v-model="password" label="Пароль" type="password"/>
-        <v-btn color="primary" type="submit">Войти</v-btn>
+        <v-text-field v-model="password" :label="$t('password.placeholder')" type="password"/>
+        <v-btn color="primary" type="submit" :disabled="!email || !password">{{$t('submit')}}</v-btn>
       </v-form>
-      <span>Авторизация через сервисы</span>
+      <span>{{$t('subtitle')}}</span>
       <div ref="firebaseAuth" class="firebase-auth"></div>
     </v-card>
   </v-layout>
@@ -30,6 +34,25 @@ export default {
     };
   },
 
+  i18n: {
+    messages: {
+      ru: {
+        password: {
+          placeholder: 'Пароль',
+        },
+        submit: 'Войти',
+        subtitle: 'Авторизация через сервисы',
+      },
+      en: {
+        password: {
+          placeholder: 'Password',
+        },
+        submit: 'Sign in',
+        subtitle: 'Authorization via services',
+      },
+    },
+  },
+
   mounted() {
     this.initFirebaseUI();
   },
@@ -37,6 +60,8 @@ export default {
   methods: {
     ...mapActions('user', ['loginWithEmailAndPassword']),
     onAuthWithEmailForm() {
+      if (!this.email || !this.password) return;
+
       this.loginWithEmailAndPassword({
         email: this.email,
         password: this.password,

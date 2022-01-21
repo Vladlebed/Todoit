@@ -1,11 +1,11 @@
 <template>
   <v-col cols="3">
     <div class="grey lighten-4 pa-4 rounded">
-      <v-text-field :value="computedColumn.columnProperties.name" label="Название колонки" @input="onChangeColumn" />
+      <v-text-field :value="computedColumn.columnProperties.name" :label="$t('columnName')" @input="onChangeColumn" />
 
       <div>
-        <v-btn x-small class="secondary" @click="createCard(column.uid)">Добавить карточку</v-btn>
-        <v-btn x-small color="warning" class="ml-4" @click="onColumnRemove">Удалить колонку</v-btn>
+        <v-btn x-small class="secondary" @click="createCard(column.uid)">{{ $t('createCard') }}</v-btn>
+        <v-btn x-small color="warning" class="ml-4" @click="onColumnRemove">{{ $t('removeColumn') }}</v-btn>
       </div>
 
       <v-todo-card v-for="(card) in computedColumn.cards"
@@ -15,17 +15,17 @@
       />
 
       <div v-if="!computedColumn.cards.length" class="mt-4">
-        <span>Пустая колонка</span>
+        <span>{{ $t('emptyColumn') }}</span>
       </div>
 
       <v-dialog v-model="deletionConfirmation" width="500">
         <v-card>
           <v-card-title class="text-h5 grey lighten-2">
-            Удалить данный столбец?
+            {{ $t('dialog.title') }}
           </v-card-title>
 
-          <v-card-text>
-            В столбце содержатся данные, которые можно потерять при удалении
+          <v-card-text class="pa-4">
+            {{ $t('dialog.text') }}
           </v-card-text>
 
           <v-divider></v-divider>
@@ -33,10 +33,10 @@
           <v-card-actions>
             <v-spacer></v-spacer>
             <v-btn color="primary" text @click="deletionConfirmation = false">
-              Отменить
+              {{ $t('dialog.cancel') }}
             </v-btn>
             <v-btn color="error" text @click="removeColumn(column.uid)">
-              Удалить
+              {{ $t('dialog.submit') }}
             </v-btn>
           </v-card-actions>
         </v-card>
@@ -62,6 +62,35 @@ export default {
     },
   },
 
+  i18n: {
+    messages: {
+      ru: {
+        columnName: 'Название колонки',
+        createCard: 'Добавить карточку',
+        removeColumn: 'Удалить колонку',
+        emptyColumn: 'Пустая колонка',
+        dialog: {
+          title: 'Удалить данный столбец?',
+          text: 'В столбце содержатся данные, которые можно потерять при удалении',
+          submit: 'Удалить',
+          cancel: 'Отменить',
+        },
+      },
+      en: {
+        columnName: 'Column name',
+        createCard: 'Add card',
+        removeColumn: 'Remove column',
+        emptyColumn: 'Empty column',
+        dialog: {
+          title: 'Delete this column?',
+          text: 'The column contains data that can be lost when deleted',
+          submit: 'Remove',
+          cancel: 'Cancel',
+        },
+      },
+    },
+  },
+
   data() {
     return {
       deletionConfirmation: false,
@@ -84,6 +113,7 @@ export default {
         this.removeColumn(this.column.uid);
       }
     },
+    // eslint-disable-next-line func-names
     onChangeColumn: debounce(function (ev) {
       this.changeColumn({ columnUid: this.column.uid, columnProperties: { name: ev } });
     }, 300),
