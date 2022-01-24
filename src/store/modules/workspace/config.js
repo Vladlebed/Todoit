@@ -1,21 +1,36 @@
-export const workspaceInstance = (workspaceName = '') => ({
-  workspaceProperties: {
-    name: workspaceName,
+import { defaultsDeep } from 'lodash';
+
+const defaultProperties = (properties = {}) => defaultsDeep(properties, {
+  name: '',
+  description: '',
+  backgroundColor: false,
+  backgroundImage: {
+    name: '',
+    file: null,
   },
+});
+
+export const workspaceInstance = (workspaceName = '') => ({
+  properties: defaultProperties({
+    name: workspaceName,
+    allowColumnMove: true,
+    allowCardMove: true,
+    allowChangeColumnStyle: true,
+    allowChangeCardStyle: true,
+    allowChangeCardStatus: true,
+    backgroundColor: '#1976D2',
+  }),
   columns: [],
 });
 
 export const columnInstance = () => ({
-  columnProperties: {
-    name: '',
-  },
+  properties: defaultProperties(),
   cards: [],
 });
 
 export const cardInstance = () => ({
-  cardProperties: {
-    name: '',
-    text: '',
+  properties: defaultProperties({
     isCompleted: '',
-  },
+    descriptionShow: false,
+  }),
 });
