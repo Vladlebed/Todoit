@@ -1,7 +1,7 @@
 <template>
   <v-col cols="3">
     <div class="grey lighten-4 pa-4 rounded">
-      <v-text-field :value="computedColumn.columnProperties.name" :label="$t('columnName')" @input="onChangeColumn" />
+      <v-text-field :value="snapshotColumnProperties.name" :label="$t('columnName')" @input="onChangeColumn" />
 
       <div>
         <v-btn x-small class="secondary" @click="createCard(column.uid)">{{ $t('createCard') }}</v-btn>
@@ -48,7 +48,7 @@
 <script>
 import { mapActions } from 'vuex';
 import VTodoCard from '@/components/common/VTodoCard';
-import { debounce } from 'lodash';
+import { debounce, cloneDeep } from 'lodash';
 
 export default {
   name: 'VTodoColumn',
@@ -94,6 +94,7 @@ export default {
   data() {
     return {
       deletionConfirmation: false,
+      snapshotColumnProperties: {},
     };
   },
 
@@ -101,6 +102,10 @@ export default {
     computedColumn() {
       return this.column.data;
     },
+  },
+
+  created() {
+    this.snapshotColumnProperties = cloneDeep(this.column.data.columnProperties);
   },
 
   methods: {
