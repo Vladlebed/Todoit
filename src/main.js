@@ -11,7 +11,7 @@ import i18n from './i18n';
 
 // Initialize Firebase
 firebase.initializeApp({
-  apiKey: 'AIzaSyAozgPztJbgvnELKXTQRf5D2ntmtzTIp5w',
+  apiKey: process.env.VUE_APP_FIREBASE_API_KEY,
   authDomain: 'todo-801f0.firebaseapp.com',
   projectId: 'todo-801f0',
   storageBucket: 'todo-801f0.appspot.com',
