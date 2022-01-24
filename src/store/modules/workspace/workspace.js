@@ -20,15 +20,18 @@ export default {
     updateWorkspaceList: (state, list) => {
       state.workspace.list = list;
     },
+    changeWorkspace: (state, properties) => {
+      state.workspace.current.data.properties = properties;
+    },
     // endregion workspaces
 
     // region columns
     addColumn: (state, column) => {
       state.workspace.current.data.columns.push(column);
     },
-    changeColumn: (state, { columnUid, columnProperties }) => {
+    changeColumn: (state, { columnUid, properties }) => {
       const column = state.workspace.current.data.columns.find((_column) => _column.uid === columnUid);
-      column.data.columnProperties = columnProperties;
+      column.data.properties = properties;
     },
     removeColumn: (state, columnUid) => {
       const index = state.workspace.current.data.columns.findIndex((column) => column.uid === columnUid);
@@ -44,10 +47,10 @@ export default {
         .cards
         .push(card);
     },
-    changeCard: (state, { columnUid, cardUid, cardProperties }) => {
+    changeCard: (state, { columnUid, cardUid, properties }) => {
       const column = state.workspace.current.data.columns.find((_column) => _column.uid === columnUid);
       const card = column.data.cards.find((_card) => _card.uid === cardUid);
-      card.data.cardProperties = cardProperties;
+      card.data.properties = properties;
     },
     removeCard: (state, { columnUid, cardUid }) => {
       const column = state.workspace.current.data.columns.find((_column) => _column.uid === columnUid);
@@ -59,6 +62,17 @@ export default {
 
   actions: {
     // region workspaces
+    changeWorkspace: async ({ dispatch, commit, state }, properties) => {
+      const uid = await dispatch('user/getUid', {}, { root: true });
+
+      return firebase
+        .database()
+        .ref(`/users/${uid}/workspaces/${state.workspace.current.uid}/properties`)
+        .update(properties)
+        .then(() => {
+          commit('changeWorkspace', properties);
+        });
+    },
     getCurrentWorkspace: async ({ dispatch, commit, state }) => {
       const uid = await dispatch('user/getUid', {}, { root: true });
       return firebase.database().ref(`/users/${uid}/currentWorkspace`).once('value')
@@ -130,15 +144,15 @@ export default {
           commit('removeColumn', columnUid);
         });
     },
-    changeColumn: async ({ dispatch, commit, state }, { columnUid, columnProperties }) => {
+    changeColumn: async ({ dispatch, commit, state }, { columnUid, properties }) => {
       const uid = await dispatch('user/getUid', {}, { root: true });
 
       return firebase
         .database()
-        .ref(`/users/${uid}/workspaces/${state.workspace.current.uid}/columns/${columnUid}/columnProperties`)
-        .update(columnProperties)
+        .ref(`/users/${uid}/workspaces/${state.workspace.current.uid}/columns/${columnUid}/properties`)
+        .update(properties)
         .then(() => {
-          commit('changeColumn', { columnUid, columnProperties });
+          commit('changeColumn', { columnUid, properties });
         });
     },
     // endregion columns
@@ -161,15 +175,15 @@ export default {
           });
         });
     },
-    changeCard: async ({ dispatch, commit, state }, { columnUid, cardUid, cardProperties }) => {
+    changeCard: async ({ dispatch, commit, state }, { columnUid, cardUid, properties }) => {
       const uid = await dispatch('user/getUid', {}, { root: true });
 
       return firebase
         .database()
-        .ref(`/users/${uid}/workspaces/${state.workspace.current.uid}/columns/${columnUid}/cards/${cardUid}/cardProperties`)
-        .update(cardProperties)
+        .ref(`/users/${uid}/workspaces/${state.workspace.current.uid}/columns/${columnUid}/cards/${cardUid}/properties`)
+        .update(properties)
         .then(() => {
-          commit('changeCard', { columnUid, cardUid, cardProperties });
+          commit('changeCard', { columnUid, cardUid, properties });
         });
     },
     removeCard: async ({ dispatch, commit, state }, { columnUid, cardUid }) => {

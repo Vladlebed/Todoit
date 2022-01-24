@@ -1,11 +1,22 @@
 <template>
-  <v-card class="mt-4 pa-4" elevation="2">
-    <v-text-field v-model="cardPropertiesSnapshot.name" :label="$t('name')" />
-    <v-textarea v-model="cardPropertiesSnapshot.text" :label="$t('text')" dense />
-    <v-card-actions>
-      <v-btn x-small @click="onCardRemove">{{ $t('removeCard') }}</v-btn>
-      <v-checkbox v-model="cardPropertiesSnapshot.isCompleted" :label="$t('isCompleted')" class="ml-4" />
-    </v-card-actions>
+  <v-card class="mt-4 pl-4 pr-4 pt-2 pb-2" elevation="2">
+    <div class="flex">
+      <v-text-field v-model="snapshotProperties.name" :label="$t('name')" />
+    </div>
+    <v-textarea v-if="snapshotProperties.descriptionShow" v-model="snapshotProperties.description" :label="$t('text')" dense />
+    <v-checkbox v-model="snapshotProperties.isCompleted" :label="$t('isCompleted')" />
+    <v-btn color="error" x-small @click="onCardRemove">{{ $t('removeCard') }}</v-btn>
+    <v-expansion-panels flat>
+      <v-expansion-panel>
+        <v-expansion-panel-header>
+          {{ $t('settings') }}
+        </v-expansion-panel-header>
+        <v-expansion-panel-content>
+          <v-checkbox v-model="snapshotProperties.descriptionShow" :label="$t('textShow')" />
+          <v-color-picker dot-size="13" mode="hexa" swatches-max-height="178" class="mt-4" />
+        </v-expansion-panel-content>
+      </v-expansion-panel>
+    </v-expansion-panels>
   </v-card>
 </template>
 
@@ -34,26 +45,32 @@ export default {
         text: 'Текст карточки',
         removeCard: 'Удалить карточку',
         isCompleted: 'Завершено',
+        textShow: 'Показать текст',
+        settings: 'Настройки',
+        styles: 'Стилизация',
       },
       en: {
         name: 'Title',
         text: 'Text',
         removeCard: 'Remove card',
         isCompleted: 'Completed',
+        textShow: 'Show text',
+        settings: 'Settings',
+        styles: 'Styles',
       },
     },
   },
 
   data() {
     return {
-      cardPropertiesSnapshot: {},
+      snapshotProperties: {},
     };
   },
 
   created() {
-    this.cardPropertiesSnapshot = cloneDeep(this.cardData.data.cardProperties);
-    this.$watch('cardPropertiesSnapshot', debounce((ev) => {
-      this.changeCard({ columnUid: this.column.uid, cardUid: this.cardData.uid, cardProperties: ev });
+    this.snapshotProperties = cloneDeep(this.cardData.data.properties);
+    this.$watch('snapshotProperties', debounce((ev) => {
+      this.changeCard({ columnUid: this.column.uid, cardUid: this.cardData.uid, properties: ev });
     }, 300), { deep: true });
   },
 
@@ -66,8 +83,8 @@ export default {
         cardUid: this.cardData.uid,
       });
     },
-    // debouncedSaveCardProperties: debounce(function (ev) {
-    //   this.changeCard({ columnUid: this.column.uid, cardUid: this.cardData.uid, cardProperties: ev });
+    // debouncedSaveproperties: debounce(function (ev) {
+    //   this.changeCard({ columnUid: this.column.uid, cardUid: this.cardData.uid, properties: ev });
     // }, 300),
   },
 };

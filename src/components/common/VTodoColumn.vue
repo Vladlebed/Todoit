@@ -1,7 +1,7 @@
 <template>
   <v-col cols="3">
     <div class="grey lighten-4 pa-4 rounded">
-      <v-text-field :value="snapshotColumnProperties.name" :label="$t('columnName')" @input="onChangeColumn" />
+      <v-text-field :value="snapshotProperties.name" :label="$t('columnName')" @input="onChangeColumn" />
 
       <div>
         <v-btn x-small class="secondary" @click="createCard(column.uid)">{{ $t('createCard') }}</v-btn>
@@ -94,7 +94,7 @@ export default {
   data() {
     return {
       deletionConfirmation: false,
-      snapshotColumnProperties: {},
+      snapshotProperties: {},
     };
   },
 
@@ -105,7 +105,7 @@ export default {
   },
 
   created() {
-    this.snapshotColumnProperties = cloneDeep(this.column.data.columnProperties);
+    this.snapshotProperties = cloneDeep(this.column.data.properties);
   },
 
   methods: {
@@ -120,7 +120,7 @@ export default {
     },
     // eslint-disable-next-line func-names
     onChangeColumn: debounce(function (ev) {
-      this.changeColumn({ columnUid: this.column.uid, columnProperties: { name: ev } });
+      this.changeColumn({ columnUid: this.column.uid, properties: { name: ev } });
     }, 300),
   },
 };
