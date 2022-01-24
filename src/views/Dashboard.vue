@@ -1,8 +1,8 @@
 <template>
-  <div class="primary">
-    <the-header />
-    <v-container fluid>
-      <v-layout v-if="currentWorkspace" column fill-height>
+  <div class="fill-height primary d-flex flex-column">
+    <the-header class="flex-grow-0" />
+    <v-container class="flex-grow-1 workspace-container" :style="computedWorkspaceStyle" fluid>
+      <v-layout v-if="currentWorkspace" class="d-block" column fill-height>
         <v-row>
           <v-col>
             <v-flex>
@@ -22,7 +22,7 @@
 </template>
 
 <script>
-import TheHeader from '@/components/single/TheHeader';
+import TheHeader from '@/components/single/TheHeader/TheHeader';
 import VTodoColumn from '@/components/common/VTodoColumn';
 import { mapGetters, mapActions } from 'vuex';
 
@@ -47,6 +47,12 @@ export default {
     columns() {
       return this.currentWorkspace.data.columns;
     },
+    computedWorkspaceStyle() {
+      return this.currentWorkspace ? {
+        backgroundImage: this.currentWorkspace.data.properties.backgroundImage.file ? `url(${this.currentWorkspace.data.properties.backgroundImage.file})` : null,
+        backgroundColor: this.currentWorkspace.data.properties.backgroundColor,
+      } : {};
+    },
   },
 
   created() {
@@ -66,3 +72,9 @@ export default {
   },
 };
 </script>
+
+<style lang="scss">
+  .workspace-container {
+    background-size: cover;
+  }
+</style>
