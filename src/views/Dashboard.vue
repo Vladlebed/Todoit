@@ -88,5 +88,6 @@ export default {
 <style lang="scss">
   .workspace-container {
     background-size: cover;
+    transition: .5s background-color ease;
   }
 </style>
