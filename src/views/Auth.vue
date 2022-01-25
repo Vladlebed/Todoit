@@ -10,7 +10,6 @@
         <v-text-field v-model="password" :label="$t('password.placeholder')" type="password"/>
         <v-btn color="primary" type="submit" :disabled="!email || !password">{{$t('submit')}}</v-btn>
       </v-form>
-      <span>{{$t('subtitle')}}</span>
       <div ref="firebaseAuth" class="firebase-auth"></div>
     </v-card>
   </v-layout>
@@ -41,14 +40,12 @@ export default {
           placeholder: 'Пароль',
         },
         submit: 'Войти',
-        subtitle: 'Авторизация через сервисы',
       },
       en: {
         password: {
           placeholder: 'Password',
         },
         submit: 'Sign in',
-        subtitle: 'Authorization via services',
       },
     },
   },
@@ -87,6 +84,8 @@ export default {
 };
 </script>
 
-<style scoped>
-
+<style lang="scss">
+.v-application ul {
+  padding-left: 0;
+}
 </style>
