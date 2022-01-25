@@ -1,18 +1,20 @@
 <template>
-  <v-col cols="3">
-    <div class="grey lighten-4 pa-4 rounded">
+  <div class="pa-2">
+    <div class="grey lighten-4 pa-4 rounded workspace-column">
       <v-text-field :value="snapshotProperties.name" :label="$t('columnName')" @input="onChangeColumn" />
 
       <div>
         <v-btn x-small class="secondary" @click="createCard(column.uid)">{{ $t('createCard') }}</v-btn>
         <v-btn x-small color="warning" class="ml-4" @click="onColumnRemove">{{ $t('removeColumn') }}</v-btn>
       </div>
-
-      <v-todo-card v-for="(card) in computedColumn.cards"
-                   :key="card.uid"
-                   :card-data="card"
-                   :column="column"
-      />
+      <transition-group tag="div" name="list-complete">
+        <v-todo-card v-for="(card) in computedColumn.cards"
+                     :key="card.uid"
+                     :card-data="card"
+                     :column="column"
+                     class="list-complete-item"
+        />
+      </transition-group>
 
       <div v-if="!computedColumn.cards.length" class="mt-4">
         <span>{{ $t('emptyColumn') }}</span>
@@ -42,7 +44,7 @@
         </v-card>
       </v-dialog>
     </div>
-  </v-col>
+  </div>
 </template>
 
 <script>
@@ -126,6 +128,8 @@ export default {
 };
 </script>
 
-<style scoped>
-
+<style lang="scss" scoped>
+  .workspace-column {
+    width: 300px;
+  }
 </style>
