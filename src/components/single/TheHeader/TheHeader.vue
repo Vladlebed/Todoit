@@ -1,16 +1,36 @@
 <template>
-  <v-app-bar>
-    <v-btn color="primary" @click="showDialog">
-      {{currentWorkspace && currentWorkspace.data.properties.name || $t('workspaceAction')}}
+  <v-app-bar :style="computedHeaderStyle">
+
+    <div v-if="workspace.list.length" class="mr-4 ml-1 workspace-select-container">
+      <v-select v-model="currentWorkspace"
+                :items="workspace.list"
+                :item-text="(v) => v.data.properties.name"
+                :placeholder="$t('workspaceSelect')"
+                :no-data-text="$t('noData')"
+                :dark="currentWorkspaceHasImage"
+                dense
+                hide-details
+                return-object
+                full-width
+      />
+    </div>
+
+    <v-btn color="primary" v-if="currentWorkspace && currentWorkspace.uid" text small @click="showWorkspaceSettingsDialog">
+      <v-icon>mdi-cog</v-icon>
+    </v-btn>
+    <v-btn color="primary" text small @click="showWorkspaceCreateDialog">
+      <v-icon>mdi-plus</v-icon>
     </v-btn>
 
     <v-spacer />
 
     <v-menu offset-y>
       <template v-slot:activator="{ on, attrs }">
-        <v-btn color="primary" v-bind="attrs" v-on="on">
-          {{ $t('menuName') }}
-        </v-btn>
+        <v-avatar v-bind="attrs"
+                  v-on="on"
+                  color="primary"
+                  size="40"
+        ><span class="white--text text-h6">T</span></v-avatar>
       </template>
       <v-list>
         <v-list-item v-for="(item, index) in menu" :key="index" link>
@@ -19,18 +39,20 @@
       </v-list>
     </v-menu>
 
-    <the-header-dialog ref="dialog" />
+    <the-header-dialog-workspace-settings ref="workspaceSettings" />
+    <the-header-dialog-workspace-create  ref="workspaceCreate" />
   </v-app-bar>
 </template>
 
 <script>
-import { mapActions, mapState } from 'vuex';
-import TheHeaderDialog from '@/components/single/TheHeader/TheHeaderDialog';
+import { mapActions, mapState, mapGetters } from 'vuex';
+import TheHeaderDialogWorkspaceSettings from '@/components/single/TheHeader/TheHeaderDialogWorkspaceSettings';
+import TheHeaderDialogWorkspaceCreate from '@/components/single/TheHeader/TheHeaderDialogWorkspaceCreate';
 
 export default {
   name: 'TheHeader',
 
-  components: { TheHeaderDialog },
+  components: { TheHeaderDialogWorkspaceSettings, TheHeaderDialogWorkspaceCreate },
 
   data() {
     return {
@@ -51,19 +73,21 @@ export default {
   i18n: {
     messages: {
       ru: {
-        menuName: 'Меню',
         menu: {
           settings: 'Настройки',
           logout: 'Выход',
         },
+        noData: 'Нет рабочих столов',
+        workspaceSelect: 'Текущий рабочий стол',
         workspaceAction: 'Рабочий стол',
       },
       en: {
-        menuName: 'Account',
         menu: {
           settings: 'Settings',
           logout: 'Log out',
         },
+        noData: 'No workspaces',
+        workspaceSelect: 'Current workspace',
         workspaceAction: 'workspace',
       },
     },
@@ -71,8 +95,22 @@ export default {
 
   computed: {
     ...mapState('workspace', ['workspace']),
-    currentWorkspace() {
-      return this.workspace.list.find((workspace) => workspace.uid === this.workspace.current?.uid);
+    ...mapGetters('workspace', ['currentWorkspaceHasImage']),
+
+    currentWorkspace: {
+      get() {
+        return this.workspace.list.find((workspace) => workspace.uid === this.workspace.current?.uid);
+      },
+      set(v) {
+        this.setCurrentWorkspace(v);
+      },
+    },
+    computedHeaderStyle() {
+      return this.currentWorkspaceHasImage ? {
+        backgroundColor: 'rgba(0,0,0,0.65)',
+      } : {
+        backgroundColor: 'white',
+      };
     },
   },
 
@@ -84,13 +122,18 @@ export default {
       if (item.action) item.action();
     },
 
-    showDialog() {
-      this.$refs.dialog.showDialog();
+    showWorkspaceSettingsDialog() {
+      this.$refs.workspaceSettings.showDialog();
+    },
+    showWorkspaceCreateDialog() {
+      this.$refs.workspaceCreate.showDialog();
     },
   },
 };
 </script>
 
-<style scoped>
-
+<style lang="scss" scoped>
+  .workspace-select-container {
+    width: 300px;
+  }
 </style>

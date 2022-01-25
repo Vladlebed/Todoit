@@ -1,22 +1,43 @@
 <template>
-  <v-col cols="3">
-    <div class="grey lighten-4 pa-4 rounded">
-      <v-text-field :value="snapshotProperties.name" :label="$t('columnName')" @input="onChangeColumn" />
-
-      <div>
-        <v-btn x-small class="secondary" @click="createCard(column.uid)">{{ $t('createCard') }}</v-btn>
-        <v-btn x-small color="warning" class="ml-4" @click="onColumnRemove">{{ $t('removeColumn') }}</v-btn>
+  <div class="pa-2">
+    <div class="grey lighten-4 pa-2 rounded workspace-column">
+      <div class="d-flex">
+        <v-textarea :value="snapshotProperties.name"
+                    hide-details
+                    rows="1"
+                    auto-grow
+                    solo
+                    dense
+                    flat
+                    :placeholder="$t('columnName')"
+                    @input="onChangeColumn"
+        />
+        <v-menu left offset-y origin="center center" transition="scale-transition">
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn text v-bind="attrs" small class="mt-1" v-on="on">
+              <v-icon>mdi-dots-horizontal</v-icon>
+            </v-btn>
+          </template>
+          <v-list>
+            <v-list-item @click="createCard(column.uid)">
+              {{ $t('createCard') }}
+            </v-list-item>
+            <v-list-item @click="onColumnRemove">
+              {{ $t('removeColumn') }}
+            </v-list-item>
+          </v-list>
+        </v-menu>
       </div>
+      <transition-group tag="div" name="list-complete">
+        <v-todo-card v-for="(card) in computedColumn.cards"
+                     :key="card.uid"
+                     :card-data="card"
+                     :column="column"
+                     class="list-complete-item"
+        />
+      </transition-group>
 
-      <v-todo-card v-for="(card) in computedColumn.cards"
-                   :key="card.uid"
-                   :card-data="card"
-                   :column="column"
-      />
-
-      <div v-if="!computedColumn.cards.length" class="mt-4">
-        <span>{{ $t('emptyColumn') }}</span>
-      </div>
+      <v-btn color="primary" text width="100%" small class="mt-2" @click="createCard(column.uid)">{{ $t('createCard') }}</v-btn>
 
       <v-dialog v-model="deletionConfirmation" width="500">
         <v-card>
@@ -42,7 +63,7 @@
         </v-card>
       </v-dialog>
     </div>
-  </v-col>
+  </div>
 </template>
 
 <script>
@@ -126,6 +147,8 @@ export default {
 };
 </script>
 
-<style scoped>
-
+<style lang="scss" scoped>
+  .workspace-column {
+    width: 300px;
+  }
 </style>
