@@ -1,7 +1,7 @@
 <template>
-  <div class="fill-height primary d-flex flex-column">
+  <div class="fill-height d-flex flex-column workspace-container" :style="computedWorkspaceStyle">
     <the-header class="flex-grow-0" />
-    <v-container ref="container" class="flex-grow-1 workspace-container overflow-x-auto overflow-y-hidden" :style="computedWorkspaceStyle" fluid>
+    <v-container ref="container" class="flex-grow-1 overflow-x-auto overflow-y-hidden" fluid>
       <v-layout v-if="currentWorkspace" class="d-block" column fill-height>
         <transition-group class="d-flex fill-height" tag="div" name="list-complete">
           <v-todo-column v-for="(column) in columns"
@@ -9,7 +9,13 @@
                          :column="column"
                          class="list-complete-item"
           />
-          <v-btn class="white--text green mt-2 ml-2" key="createColumnBtn" @click="onCreateColumn">{{$t('createColumn')}}</v-btn>
+          <v-btn color="primary"
+                 class="mt-2 ml-2 create-column-btn"
+                 key="createColumnBtn"
+                 @click="onCreateColumn"
+          >
+            {{$t('createColumn')}}
+          </v-btn>
         </transition-group>
       </v-layout>
     </v-container>
