@@ -5,37 +5,14 @@
         {{ $t('title') }}
       </v-card-title>
 
-      <div class="pa-4 pb-0">
-        <v-select v-model="currentWorkspace"
-                  :items="this.workspace.list"
-                  :item-text="(v) => v.data.properties.name"
-                  :label="$t('workspaceSelect')"
-                  :no-data-text="$t('noData')"
-                  outlined
-                  return-object
-                  dense
-        />
-      </div>
-
-      <v-form class="pa-4" @submit.prevent="onCreateWorkspace">
-        <v-text-field v-model="workspaceName"
-                      :label="$t('workspaceCreateInput')"
-                      outlined
-                      dense
-        />
-        <v-btn color="primary" type="submit" :disabled="!workspaceName">
-          {{ $t('createBtn') }}
-        </v-btn>
-      </v-form>
-
-      <v-divider></v-divider>
+      <v-divider />
 
       <div v-if="currentWorkspace" class="pa-4">
         <v-expansion-panels flat>
 
           <v-expansion-panel>
             <v-expansion-panel-header>
-              Настройки текущего рабочего стола
+              Основные
             </v-expansion-panel-header>
             <v-expansion-panel-content>
               <v-text-field v-model="workspacePropertySnapshot.name" label="Название рабочего стола" />
@@ -61,13 +38,13 @@
 
           <v-expansion-panel>
             <v-expansion-panel-header>
-              Фон рабочего стола
+              Стилизация
             </v-expansion-panel-header>
             <v-expansion-panel-content>
               <div class="mt-4">
                 <v-color-picker v-model="workspacePropertySnapshot.backgroundColor" dot-size="13" mode="hexa" width="450" swatches-max-height="178" :hide-mode-switch="true" class="mt-4" />
               </div>
-              <div class="mt-4">
+              <div v-if="workspacePropertySnapshot.backgroundImage" class="mt-4">
                 <v-file-input v-if="!workspacePropertySnapshot.backgroundImage.name"
                               :loading="fileLoading"
                               :rules="[validateFileTypes]"
@@ -80,18 +57,17 @@
             </v-expansion-panel-content>
           </v-expansion-panel>
         </v-expansion-panels>
-
-        <div v-if="settingsHasChanges" class="flex mt-4">
-          <v-btn width="50%" text @click="createWorkspacePropertySnapshot">Отменить</v-btn>
-          <v-btn width="50%" color="primary" @click="saveWorkspaceProperties">Применить</v-btn>
-        </div>
       </div>
 
-      <v-divider></v-divider>
+      <v-divider />
 
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn color="gray" text @click="hideDialog">
+        <template v-if="settingsHasChanges">
+          <v-btn text @click="createWorkspacePropertySnapshot">Отменить</v-btn>
+          <v-btn color="primary" :disabled="!workspacePropertySnapshot.name" @click="saveWorkspaceProperties">Применить</v-btn>
+        </template>
+        <v-btn v-else color="gray" text @click="hideDialog">
           {{ $t('closeBtn') }}
         </v-btn>
       </v-card-actions>
@@ -111,18 +87,11 @@ export default {
   i18n: {
     messages: {
       ru: {
-        title: 'Рабочий стол',
-        workspaceSelect: 'Текущий рабочий стол',
-        noData: 'Нет рабочих столов',
-        workspaceCreateInput: 'Название нового рабочего стола',
-        createBtn: 'Создать',
+        title: 'Настройки рабочего стола',
         closeBtn: 'Закрыть',
       },
       en: {
-        title: 'Workspace',
-        workspaceSelect: 'Current workspace',
-        noData: 'No workspaces',
-        workspaceCreateInput: 'Name of the new desktop',
+        title: 'Workspace settings',
         createBtn: 'Create',
         closeBtn: 'Close',
       },
@@ -157,23 +126,18 @@ export default {
   methods: {
     ...mapActions('workspace', ['createWorkspace', 'setCurrentWorkspace', 'changeWorkspace']),
 
-    // dialog
+    // region dialog
     showDialog() {
       this.show = true;
     },
     hideDialog() {
       this.show = false;
-      this.workspaceName = '';
     },
-    onCreateWorkspace() {
-      this.createWorkspace(this.workspaceName);
-    },
+    // endregion dialog
+
+    // region workspace
     createWorkspacePropertySnapshot() {
       this.workspacePropertySnapshot = cloneDeep(this.currentWorkspace.data.properties);
-    },
-    validateFileTypes(v) {
-      const validTypes = ['image/jpeg', 'image/png'];
-      return validTypes.includes(v?.type);
     },
     setWorkspaceBackgroundImage(file) {
       if (file) {
@@ -196,6 +160,12 @@ export default {
     async saveWorkspaceProperties() {
       await this.changeWorkspace(this.workspacePropertySnapshot);
       this.createWorkspacePropertySnapshot();
+    },
+    // endregion workspace
+
+    validateFileTypes(v) {
+      const validTypes = ['image/jpeg', 'image/png'];
+      return validTypes.includes(v?.type);
     },
   },
 
