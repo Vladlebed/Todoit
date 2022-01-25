@@ -1,21 +1,16 @@
 <template>
   <div class="fill-height primary d-flex flex-column">
     <the-header class="flex-grow-0" />
-    <v-container class="flex-grow-1 workspace-container" :style="computedWorkspaceStyle" fluid>
+    <v-container ref="container" class="flex-grow-1 workspace-container overflow-x-auto overflow-y-hidden" :style="computedWorkspaceStyle" fluid>
       <v-layout v-if="currentWorkspace" class="d-block" column fill-height>
-        <v-row>
-          <v-col>
-            <v-flex>
-              <v-btn class="white--text green" @click="createColumn">{{$t('createColumn')}}</v-btn>
-            </v-flex>
-          </v-col>
-        </v-row>
-        <v-row>
+        <transition-group class="d-flex fill-height" tag="div" name="list-complete">
           <v-todo-column v-for="(column) in columns"
                          :key="column.uid"
                          :column="column"
+                         class="list-complete-item"
           />
-        </v-row>
+          <v-btn class="white--text green mt-2 ml-2" key="createColumnBtn" @click="onCreateColumn">{{$t('createColumn')}}</v-btn>
+        </transition-group>
       </v-layout>
     </v-container>
   </div>
@@ -25,6 +20,7 @@
 import TheHeader from '@/components/single/TheHeader/TheHeader';
 import VTodoColumn from '@/components/common/VTodoColumn';
 import { mapGetters, mapActions } from 'vuex';
+import '@/assets/transition.scss';
 
 export default {
   name: 'Dashboard',
@@ -69,6 +65,16 @@ export default {
       'createColumn',
       'createCard',
     ]),
+    async onCreateColumn() {
+      await this.createColumn();
+      setTimeout(() => {
+        const { container } = this.$refs;
+        container.scrollTo({
+          left: container.scrollWidth,
+          behavior: 'smooth',
+        });
+      }, 301); // Скролл после завершения анимации
+    },
   },
 };
 </script>
