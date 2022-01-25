@@ -200,5 +200,6 @@ export default {
   },
   getters: {
     currentWorkspace: (s) => s.workspace.current,
+    currentWorkspaceHasImage: (s) => !!s.workspace.current?.data.properties?.backgroundImage?.name,
   },
 };
