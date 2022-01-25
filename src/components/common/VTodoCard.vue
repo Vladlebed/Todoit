@@ -1,22 +1,46 @@
 <template>
-  <v-card class="mt-4 pl-4 pr-4 pt-2 pb-2" elevation="2">
-    <div class="flex">
-      <v-text-field v-model="snapshotProperties.name" :label="$t('name')" />
+  <v-card class="mt-4 pa-2" elevation="2">
+    <div class="d-flex">
+      <v-textarea v-model="snapshotProperties.name"
+                  hide-details
+                  rows="1"
+                  auto-grow
+                  solo
+                  dense
+                  flat
+                  :placeholder="$t('name')"
+      />
+      <v-menu left offset-y origin="center center" :close-on-content-click="false" transition="scale-transition">
+        <template v-slot:activator="{ on, attrs }">
+          <v-btn class="mt-1" text v-bind="attrs" small v-on="on">
+            <v-icon>mdi-dots-horizontal</v-icon>
+          </v-btn>
+        </template>
+        <v-list>
+          <v-list-item>
+            <v-checkbox v-model="snapshotProperties.isCompleted" :label="$t('isCompleted')" />
+          </v-list-item>
+          <v-list-item>
+            <v-checkbox v-model="snapshotProperties.descriptionShow" :label="$t('descriptionShow')" />
+          </v-list-item>
+          <v-list-item @click="onCardRemove">
+            {{ $t('removeCard') }}
+          </v-list-item>
+        </v-list>
+      </v-menu>
     </div>
-    <v-textarea v-if="snapshotProperties.descriptionShow" v-model="snapshotProperties.description" :label="$t('text')" dense />
-    <v-checkbox v-model="snapshotProperties.isCompleted" :label="$t('isCompleted')" />
-    <v-btn color="error" x-small @click="onCardRemove">{{ $t('removeCard') }}</v-btn>
-    <v-expansion-panels flat>
-      <v-expansion-panel>
-        <v-expansion-panel-header>
-          {{ $t('settings') }}
-        </v-expansion-panel-header>
-        <v-expansion-panel-content>
-          <v-checkbox v-model="snapshotProperties.descriptionShow" :label="$t('textShow')" />
-          <v-color-picker dot-size="13" mode="hexa" swatches-max-height="178" class="mt-4" />
-        </v-expansion-panel-content>
-      </v-expansion-panel>
-    </v-expansion-panels>
+
+    <v-textarea v-if="snapshotProperties.descriptionShow"
+                v-model="snapshotProperties.description"
+                class="mt-2 card-description"
+                :label="$t('description')"
+                hide-details
+                rows="1"
+                auto-grow
+                solo
+                dense
+                flat
+    />
   </v-card>
 </template>
 
@@ -42,19 +66,19 @@ export default {
     messages: {
       ru: {
         name: 'Название карточки',
-        text: 'Текст карточки',
+        description: 'Описание карточки',
         removeCard: 'Удалить карточку',
         isCompleted: 'Завершено',
-        textShow: 'Показать текст',
+        descriptionShow: 'Показать описание',
         settings: 'Настройки',
         styles: 'Стилизация',
       },
       en: {
         name: 'Title',
-        text: 'Text',
+        description: 'Description',
         removeCard: 'Remove card',
         isCompleted: 'Completed',
-        textShow: 'Show text',
+        descriptionShow: 'Show description',
         settings: 'Settings',
         styles: 'Styles',
       },
@@ -90,6 +114,10 @@ export default {
 };
 </script>
 
-<style scoped>
-
+<style lang="scss">
+  .card-description {
+    textarea {
+      font-size: 14px;
+    }
+  }
 </style>

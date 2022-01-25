@@ -14,7 +14,7 @@
         />
         <v-menu left offset-y origin="center center" transition="scale-transition">
           <template v-slot:activator="{ on, attrs }">
-            <v-btn text v-bind="attrs" v-on="on">
+            <v-btn text v-bind="attrs" small class="mt-1" v-on="on">
               <v-icon>mdi-dots-horizontal</v-icon>
             </v-btn>
           </template>
