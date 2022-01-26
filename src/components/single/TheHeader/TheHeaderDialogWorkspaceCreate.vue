@@ -2,7 +2,7 @@
   <v-dialog v-model="show" width="500">
     <v-card>
       <v-card-title>
-        Создание рабочего стола
+        {{$t('title')}}
       </v-card-title>
 
       <v-form class="pa-4" @submit.prevent="onCreateWorkspace">
@@ -34,11 +34,13 @@ export default {
     messages: {
       ru: {
         workspaceCreateInput: 'Название нового рабочего стола',
+        title: 'Создание рабочего стола',
         createBtn: 'Создать',
         closeBtn: 'Закрыть',
       },
       en: {
         workspaceCreateInput: 'Name of the new desktop',
+        title: 'Create workspace',
         createBtn: 'Create',
         closeBtn: 'Close',
       },
