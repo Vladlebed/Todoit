@@ -2,7 +2,7 @@
   <v-layout fill-height class="primary d-flex justify-center align-center overflow-hidden">
     <v-card class="pa-4" width="400">
       <div class="text-center">
-        <span class="text-h1">TODO</span>
+        <span class="text-h1">{{$t('logo')}}</span>
       </div>
 
       <v-form class="text-center mb-4" @submit.prevent="onAuthWithEmailForm">
@@ -36,12 +36,14 @@ export default {
   i18n: {
     messages: {
       ru: {
+        logo: 'TODO',
         password: {
           placeholder: 'Пароль',
         },
         submit: 'Войти',
       },
       en: {
+        logo: 'TODO',
         password: {
           placeholder: 'Password',
         },

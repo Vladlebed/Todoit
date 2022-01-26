@@ -12,33 +12,33 @@
 
           <v-expansion-panel>
             <v-expansion-panel-header>
-              Основные
+              {{$t('main')}}
             </v-expansion-panel-header>
             <v-expansion-panel-content>
-              <v-text-field v-model="workspacePropertySnapshot.name" label="Название рабочего стола" />
-              <v-text-field v-model="workspacePropertySnapshot.description" label="Описание рабочего стола" />
-              <v-checkbox v-model="workspacePropertySnapshot.allowColumnMove" label="Перемещение колонок" class="mt-0" />
-              <v-checkbox v-model="workspacePropertySnapshot.allowCardMove" label="Перемещение карточек" class="mt-0" />
-              <v-checkbox v-model="workspacePropertySnapshot.allowChangeColumnStyle" label="Изменение стиля колонок" class="mt-0" />
-              <v-checkbox v-model="workspacePropertySnapshot.allowChangeCardStyle" label="Изменение стиля карточек" class="mt-0" />
+              <v-text-field v-model="workspacePropertySnapshot.name" :label="$t('properties.name')" />
+              <v-text-field v-model="workspacePropertySnapshot.description" :label="$t('properties.description')" />
+              <v-checkbox v-model="workspacePropertySnapshot.allowColumnMove" :label="$t('properties.allowColumnMove')" class="mt-0" />
+              <v-checkbox v-model="workspacePropertySnapshot.allowCardMove" :label="$t('properties.allowCardMove')" class="mt-0" />
+              <v-checkbox v-model="workspacePropertySnapshot.allowChangeColumnStyle" :label="$t('properties.allowChangeColumnStyle')" class="mt-0" />
+              <v-checkbox v-model="workspacePropertySnapshot.allowChangeCardStyle" :label="$t('properties.allowChangeCardStyle')" class="mt-0" />
               <v-checkbox v-model="workspacePropertySnapshot.allowChangeCardStatus" class="mt-0" >
                 <template #label>
-                  Изменение статуса карточек
+                  {{$t('properties.allowChangeCardStatus')}}
                   <v-tooltip bottom>
                     <template #activator="{ on }">
                       <span v-on="on" class="text-decoration-underline ml-2">?</span>
                     </template>
-                    После изменения статуса на выполенный, поменять статус будет нельзя
+                    {{$t('changingCardsStatusTooltip')}}
                   </v-tooltip>
                 </template>
               </v-checkbox>
-              <v-btn color="error" width="100%">Удалить рабочий стол</v-btn>
+              <v-btn color="error" width="100%">{{$t('removeWorkspace')}}</v-btn>
             </v-expansion-panel-content>
           </v-expansion-panel>
 
           <v-expansion-panel>
             <v-expansion-panel-header>
-              Стилизация
+              {{$t('styles')}}
             </v-expansion-panel-header>
             <v-expansion-panel-content>
               <div class="mt-4">
@@ -48,11 +48,11 @@
                 <v-file-input v-if="!workspacePropertySnapshot.backgroundImage.name"
                               :loading="fileLoading"
                               :rules="[validateFileTypes]"
-                              label="Фоновое изображение"
+                              :label="$t('backgroundImage')"
                               truncate-length="15"
                               @change="setWorkspaceBackgroundImage"
                 />
-                <v-btn v-else @click="setWorkspaceBackgroundImage(null)">Удалить изображение</v-btn>
+                <v-btn v-else @click="setWorkspaceBackgroundImage(null)">{{$t('removeImage')}}</v-btn>
               </div>
             </v-expansion-panel-content>
           </v-expansion-panel>
@@ -64,8 +64,8 @@
       <v-card-actions>
         <v-spacer></v-spacer>
         <template v-if="settingsHasChanges">
-          <v-btn text @click="createWorkspacePropertySnapshot">Отменить</v-btn>
-          <v-btn color="primary" :disabled="!workspacePropertySnapshot.name" @click="saveWorkspaceProperties">Применить</v-btn>
+          <v-btn text @click="createWorkspacePropertySnapshot">{{$t('cancel')}}</v-btn>
+          <v-btn color="primary" :disabled="!workspacePropertySnapshot.name" @click="saveWorkspaceProperties">{{$t('submit')}}</v-btn>
         </template>
         <v-btn v-else color="gray" text @click="hideDialog">
           {{ $t('closeBtn') }}
@@ -88,12 +88,45 @@ export default {
     messages: {
       ru: {
         title: 'Настройки рабочего стола',
+        main: 'Основные',
+        removeWorkspace: 'Удалить рабочий стол',
+        styles: 'Стилизация',
+        removeImage: 'Удалить изображение',
         closeBtn: 'Закрыть',
+        cancel: 'Отменить',
+        submit: 'Применить',
+        properties: {
+          name: 'Название рабочего стола',
+          description: 'Описание рабочего стола',
+          allowColumnMove: 'Перемещение колонок',
+          allowCardMove: 'Перемещение карточек',
+          allowChangeColumnStyle: 'Изменение стиля колонок',
+          allowChangeCardStyle: 'Изменение стиля колонок',
+          allowChangeCardStatus: 'Изменение статуса карточек',
+          backgroundImage: 'Фоновое изображение',
+        },
+        changingCardsStatusTooltip: 'После изменения статуса на выполенный, поменять статус будет нельзя',
       },
       en: {
         title: 'Workspace settings',
-        createBtn: 'Create',
+        main: 'Main',
+        removeWorkspace: 'Delete workspace',
+        styles: 'Stylization',
+        removeImage: 'Delete image',
         closeBtn: 'Close',
+        cancel: 'cancel',
+        submit: 'submit',
+        properties: {
+          name: 'Workspace name',
+          description: 'Workspace description',
+          allowColumnMove: 'Moving columns',
+          allowCardMove: 'Moving cards',
+          allowChangeColumnStyle: 'Changing card style',
+          allowChangeCardStyle: 'Changing column style',
+          allowChangeCardStatus: 'Changing the status of cards',
+          backgroundImage: 'Background image',
+        },
+        changingCardsStatusTooltip: 'After changing the status to completed, it will not be possible to change the status',
       },
     },
   },
