@@ -28,14 +28,17 @@
           </v-list>
         </v-menu>
       </div>
-      <transition-group tag="div" name="list-complete">
-        <v-todo-card v-for="(card) in computedColumn.cards"
-                     :key="card.uid"
-                     :card-data="card"
-                     :column="column"
-                     class="list-complete-item"
-        />
-      </transition-group>
+
+      <draggable v-model="computedColumn.cards" v-bind="dragOptions">
+        <transition-group tag="div" name="list-complete">
+          <v-todo-card v-for="(card) in computedColumn.cards"
+                       :key="card.uid"
+                       :card-data="card"
+                       :column="column"
+                       class="list-complete-item"
+          />
+        </transition-group>
+      </draggable>
 
       <v-btn color="primary" text width="100%" small class="mt-2" @click="createCard(column.uid)">{{ $t('createCard') }}</v-btn>
 
@@ -70,11 +73,13 @@
 import { mapActions } from 'vuex';
 import VTodoCard from '@/components/common/VTodoCard';
 import { debounce, cloneDeep } from 'lodash';
+import draggable from 'vuedraggable';
+import '@/assets/draggable.scss';
 
 export default {
   name: 'VTodoColumn',
 
-  components: { VTodoCard },
+  components: { VTodoCard, draggable },
 
   props: {
     column: {
@@ -122,6 +127,14 @@ export default {
   computed: {
     computedColumn() {
       return this.column.data;
+    },
+    dragOptions() {
+      return {
+        animation: 200,
+        ghostClass: 'ghost',
+        disabled: false,
+        group: 'cards',
+      };
     },
   },
 
