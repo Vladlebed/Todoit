@@ -23,7 +23,7 @@
           <v-list-item>
             <v-checkbox v-model="snapshotProperties.descriptionShow" :label="$t('descriptionShow')" />
           </v-list-item>
-          <v-list-item @click="onCardRemove">
+          <v-list-item :disabled="!currentWorkspaceProperties.allowCardRemove" @click="onCardRemove">
             {{ $t('removeCard') }}
           </v-list-item>
         </v-list>
@@ -45,7 +45,7 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex';
+import { mapActions, mapGetters } from 'vuex';
 import { debounce, cloneDeep } from 'lodash';
 
 export default {
@@ -89,6 +89,10 @@ export default {
     return {
       snapshotProperties: {},
     };
+  },
+
+  computed: {
+    ...mapGetters('workspace', ['currentWorkspaceProperties']),
   },
 
   created() {

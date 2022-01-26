@@ -5,15 +5,17 @@
       <v-layout v-if="currentWorkspace" class="d-block" column fill-height>
         <draggable v-model="columns"
                    v-bind="dragOptions"
-                   draggable=".list-complete-item"
+                   draggable=".allow-draggable"
+                   :disabled="!currentWorkspaceProperties.allowColumnMove"
         >
           <transition-group class="d-flex fill-height" tag="div" name="list-complete">
             <v-todo-column v-for="(column) in columns"
                            :key="column.uid"
                            :column="column"
-                           class="list-complete-item"
+                           class="list-complete-item allow-draggable"
             />
-            <v-btn color="primary"
+            <v-btn v-if="currentWorkspaceProperties.allowCreateNewColumn"
+                   color="primary"
                    class="mt-2 ml-2 create-column-btn"
                    key="createColumnBtn"
                    @click="onCreateColumn"
@@ -34,6 +36,7 @@ import { mapGetters, mapActions } from 'vuex';
 import draggable from 'vuedraggable';
 import '@/assets/draggable.scss';
 import '@/assets/transition.scss';
+import { setItemOrder } from '@/_utils/workspace';
 
 export default {
   name: 'Dashboard',
@@ -52,31 +55,20 @@ export default {
   },
 
   computed: {
-    ...mapGetters('workspace', ['currentWorkspace']),
+    ...mapGetters('workspace', ['currentWorkspace', 'currentWorkspaceProperties']),
 
     columns: {
       get() {
         return this.currentWorkspace.data.columns;
       },
       set(columns) {
-        // TODO refactor this
-        const _c = columns.map((column, i) => ({
-          ...column,
-          data: {
-            ...column.data,
-            properties: {
-              ...column.data.properties,
-              order: i,
-            },
-          },
-        }));
-        this.updateColumns(_c);
+        this.updateColumns(setItemOrder(columns));
       },
     },
     computedWorkspaceStyle() {
       return this.currentWorkspace ? {
-        backgroundImage: this.currentWorkspace.data.properties.backgroundImage.file ? `url(${this.currentWorkspace.data.properties.backgroundImage.file})` : null,
-        backgroundColor: this.currentWorkspace.data.properties.backgroundColor,
+        backgroundImage: this.currentWorkspaceProperties.backgroundImage.file ? `url(${this.currentWorkspaceProperties.backgroundImage.file})` : null,
+        backgroundColor: this.currentWorkspaceProperties.backgroundColor,
       } : {};
     },
     dragOptions() {
