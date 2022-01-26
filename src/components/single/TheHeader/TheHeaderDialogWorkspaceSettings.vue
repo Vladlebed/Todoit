@@ -17,22 +17,14 @@
             <v-expansion-panel-content>
               <v-text-field v-model="workspacePropertySnapshot.name" :label="$t('properties.name')" />
               <v-text-field v-model="workspacePropertySnapshot.description" :label="$t('properties.description')" />
+              <v-checkbox v-model="workspacePropertySnapshot.allowCreateNewColumn" :label="$t('properties.allowCreateNewColumn')" class="mt-0" />
               <v-checkbox v-model="workspacePropertySnapshot.allowColumnMove" :label="$t('properties.allowColumnMove')" class="mt-0" />
+              <v-checkbox v-model="workspacePropertySnapshot.allowColumnRemove" :label="$t('properties.allowColumnRemove')" class="mt-0" />
+              <v-checkbox v-model="workspacePropertySnapshot.allowCreateNewCard" :label="$t('properties.allowCreateNewCard')" class="mt-0" />
+              <v-checkbox v-model="workspacePropertySnapshot.allowCardRemove" :label="$t('properties.allowCardRemove')" class="mt-0" />
               <v-checkbox v-model="workspacePropertySnapshot.allowCardMove" :label="$t('properties.allowCardMove')" class="mt-0" />
-              <v-checkbox v-model="workspacePropertySnapshot.allowChangeColumnStyle" :label="$t('properties.allowChangeColumnStyle')" class="mt-0" />
-              <v-checkbox v-model="workspacePropertySnapshot.allowChangeCardStyle" :label="$t('properties.allowChangeCardStyle')" class="mt-0" />
-              <v-checkbox v-model="workspacePropertySnapshot.allowChangeCardStatus" class="mt-0" >
-                <template #label>
-                  {{$t('properties.allowChangeCardStatus')}}
-                  <v-tooltip bottom>
-                    <template #activator="{ on }">
-                      <span v-on="on" class="text-decoration-underline ml-2">?</span>
-                    </template>
-                    {{$t('changingCardsStatusTooltip')}}
-                  </v-tooltip>
-                </template>
-              </v-checkbox>
-              <v-btn color="error" width="100%">{{$t('removeWorkspace')}}</v-btn>
+              <v-checkbox v-model="workspacePropertySnapshot.workspaceDisabled" :label="$t('properties.workspaceDisabled')" class="mt-0" />
+              <v-btn color="error" width="100%" @click="onWorkspaceRemove">{{$t('removeWorkspace')}}</v-btn>
             </v-expansion-panel-content>
           </v-expansion-panel>
 
@@ -48,7 +40,7 @@
                 <v-file-input v-if="!workspacePropertySnapshot.backgroundImage.name"
                               :loading="fileLoading"
                               :rules="[validateFileTypes]"
-                              :label="$t('backgroundImage')"
+                              :label="$t('properties.backgroundImage')"
                               truncate-length="15"
                               @change="setWorkspaceBackgroundImage"
                 />
@@ -98,11 +90,16 @@ export default {
         properties: {
           name: 'Название рабочего стола',
           description: 'Описание рабочего стола',
+          allowCreateNewColumn: 'Создание колонок',
           allowColumnMove: 'Перемещение колонок',
           allowCardMove: 'Перемещение карточек',
+          allowColumnRemove: 'Удаление колонок',
+          allowCreateNewCard: 'Создание карточек',
+          allowCardRemove: 'Удаление карточек',
           allowChangeColumnStyle: 'Изменение стиля колонок',
           allowChangeCardStyle: 'Изменение стиля колонок',
           allowChangeCardStatus: 'Изменение статуса карточек',
+          workspaceDisabled: 'Отключить рабочий стол',
           backgroundImage: 'Фоновое изображение',
         },
         changingCardsStatusTooltip: 'После изменения статуса на выполенный, поменять статус будет нельзя',
@@ -119,11 +116,16 @@ export default {
         properties: {
           name: 'Workspace name',
           description: 'Workspace description',
+          allowCreateNewColumn: 'Creating columns',
           allowColumnMove: 'Moving columns',
           allowCardMove: 'Moving cards',
+          allowColumnRemove: 'Removing columns',
+          allowCreateNewCard: 'Creating cards',
+          allowCardRemove: 'Deleting cards',
           allowChangeColumnStyle: 'Changing card style',
           allowChangeCardStyle: 'Changing column style',
           allowChangeCardStatus: 'Changing the status of cards',
+          workspaceDisabled: 'Disable workspace',
           backgroundImage: 'Background image',
         },
         changingCardsStatusTooltip: 'After changing the status to completed, it will not be possible to change the status',
@@ -143,6 +145,7 @@ export default {
 
   computed: {
     ...mapState('workspace', ['workspace']),
+
     currentWorkspace: {
       get() {
         return this.workspace.list.find((workspace) => workspace.uid === this.workspace.current?.uid);
@@ -157,7 +160,7 @@ export default {
   },
 
   methods: {
-    ...mapActions('workspace', ['createWorkspace', 'setCurrentWorkspace', 'changeWorkspace']),
+    ...mapActions('workspace', ['createWorkspace', 'setCurrentWorkspace', 'changeWorkspace', 'removeCurrentWorkspace']),
 
     // region dialog
     showDialog() {
@@ -190,9 +193,13 @@ export default {
         };
       }
     },
-    async saveWorkspaceProperties() {
-      await this.changeWorkspace(this.workspacePropertySnapshot);
+    saveWorkspaceProperties() {
+      this.changeWorkspace(this.workspacePropertySnapshot);
       this.createWorkspacePropertySnapshot();
+    },
+    onWorkspaceRemove() {
+      this.removeCurrentWorkspace();
+      this.hideDialog();
     },
     // endregion workspace
 
@@ -203,9 +210,11 @@ export default {
   },
 
   watch: {
-    'currentWorkspace.uid': {
-      handler() {
-        this.createWorkspacePropertySnapshot();
+    'currentWorkspace.data.properties': {
+      handler(v) {
+        if (v) {
+          this.createWorkspacePropertySnapshot();
+        }
       },
     },
   },

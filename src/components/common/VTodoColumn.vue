@@ -12,32 +12,47 @@
                     :placeholder="$t('columnName')"
                     @input="onChangeColumn"
         />
-        <v-menu left offset-y origin="center center" transition="scale-transition">
+        <v-menu left offset-y :close-on-content-click="false" origin="center center" transition="scale-transition">
           <template v-slot:activator="{ on, attrs }">
             <v-btn text v-bind="attrs" small class="mt-1" v-on="on">
               <v-icon>mdi-dots-horizontal</v-icon>
             </v-btn>
           </template>
           <v-list>
-            <v-list-item @click="createCard(column.uid)">
+            <v-list-item :disabled="!currentWorkspaceProperties.allowCreateNewCard" @click="createCard(column.uid)">
               {{ $t('createCard') }}
             </v-list-item>
-            <v-list-item @click="onColumnRemove">
+            <v-list-item>
+              <v-checkbox :disabled="!currentWorkspaceProperties.allowColumnMove" label="Разрешить перемещение" />
+            </v-list-item>
+            <v-list-item :disabled="!currentWorkspaceProperties.allowColumnRemove" @click="onColumnRemove">
               {{ $t('removeColumn') }}
             </v-list-item>
           </v-list>
         </v-menu>
       </div>
-      <transition-group tag="div" name="list-complete">
-        <v-todo-card v-for="(card) in computedColumn.cards"
-                     :key="card.uid"
-                     :card-data="card"
-                     :column="column"
-                     class="list-complete-item"
-        />
-      </transition-group>
 
-      <v-btn color="primary" text width="100%" small class="mt-2" @click="createCard(column.uid)">{{ $t('createCard') }}</v-btn>
+      <draggable v-model="computedCards" v-bind="dragOptions" :disabled="!currentWorkspaceProperties.allowCardMove">
+        <transition-group tag="div" name="list-complete">
+          <v-todo-card v-for="(card) in computedCards"
+                       :key="card.uid"
+                       :card-data="card"
+                       :column="column"
+                       class="list-complete-item"
+          />
+        </transition-group>
+      </draggable>
+
+      <v-btn v-if="currentWorkspaceProperties.allowCreateNewCard"
+             color="primary"
+             text
+             width="100%"
+             small
+             class="mt-2"
+             @click="createCard(column.uid)"
+      >
+        {{ $t('createCard') }}
+      </v-btn>
 
       <v-dialog v-model="deletionConfirmation" width="500">
         <v-card>
@@ -67,14 +82,17 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex';
+import { mapActions, mapGetters } from 'vuex';
 import VTodoCard from '@/components/common/VTodoCard';
 import { debounce, cloneDeep } from 'lodash';
+import draggable from 'vuedraggable';
+import { setItemOrder } from '@/_utils/workspace';
+import '@/assets/draggable.scss';
 
 export default {
   name: 'VTodoColumn',
 
-  components: { VTodoCard },
+  components: { VTodoCard, draggable },
 
   props: {
     column: {
@@ -120,8 +138,23 @@ export default {
   },
 
   computed: {
-    computedColumn() {
-      return this.column.data;
+    ...mapGetters('workspace', ['currentWorkspaceProperties']),
+
+    computedCards: {
+      get() {
+        return this.column.data.cards;
+      },
+      set(cards) {
+        this.updateCards({ columnUid: this.column.uid, cards: setItemOrder(cards) });
+      },
+    },
+    dragOptions() {
+      return {
+        animation: 200,
+        ghostClass: 'ghost',
+        disabled: false,
+        group: 'cards',
+      };
     },
   },
 
@@ -130,10 +163,10 @@ export default {
   },
 
   methods: {
-    ...mapActions('workspace', ['createCard', 'removeColumn', 'changeColumn']),
+    ...mapActions('workspace', ['createCard', 'removeColumn', 'changeColumn', 'updateCards']),
     // Column
     onColumnRemove() {
-      if (this.computedColumn.cards.length) {
+      if (this.column.data.cards.length) {
         this.deletionConfirmation = true;
       } else {
         this.removeColumn(this.column.uid);

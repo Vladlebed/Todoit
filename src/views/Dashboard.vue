@@ -3,20 +3,27 @@
     <the-header class="flex-grow-0" />
     <v-container ref="container" class="flex-grow-1 overflow-x-auto overflow-y-hidden" fluid>
       <v-layout v-if="currentWorkspace" class="d-block" column fill-height>
-        <transition-group class="d-flex fill-height" tag="div" name="list-complete">
-          <v-todo-column v-for="(column) in columns"
-                         :key="column.uid"
-                         :column="column"
-                         class="list-complete-item"
-          />
-          <v-btn color="primary"
-                 class="mt-2 ml-2 create-column-btn"
-                 key="createColumnBtn"
-                 @click="onCreateColumn"
-          >
-            {{$t('createColumn')}}
-          </v-btn>
-        </transition-group>
+        <draggable v-model="columns"
+                   v-bind="dragOptions"
+                   draggable=".allow-draggable"
+                   :disabled="!currentWorkspaceProperties.allowColumnMove"
+        >
+          <transition-group class="d-flex fill-height" tag="div" name="list-complete">
+            <v-todo-column v-for="(column) in columns"
+                           :key="column.uid"
+                           :column="column"
+                           class="list-complete-item allow-draggable"
+            />
+            <v-btn v-if="currentWorkspaceProperties.allowCreateNewColumn"
+                   color="primary"
+                   class="mt-2 ml-2 create-column-btn"
+                   key="createColumnBtn"
+                   @click="onCreateColumn"
+            >
+              {{$t('createColumn')}}
+            </v-btn>
+          </transition-group>
+        </draggable>
       </v-layout>
     </v-container>
   </div>
@@ -26,12 +33,15 @@
 import TheHeader from '@/components/single/TheHeader/TheHeader';
 import VTodoColumn from '@/components/common/VTodoColumn';
 import { mapGetters, mapActions } from 'vuex';
+import draggable from 'vuedraggable';
+import '@/assets/draggable.scss';
 import '@/assets/transition.scss';
+import { setItemOrder } from '@/_utils/workspace';
 
 export default {
   name: 'Dashboard',
 
-  components: { TheHeader, VTodoColumn },
+  components: { TheHeader, VTodoColumn, draggable },
 
   i18n: {
     messages: {
@@ -45,15 +55,28 @@ export default {
   },
 
   computed: {
-    ...mapGetters('workspace', ['currentWorkspace']),
-    columns() {
-      return this.currentWorkspace.data.columns;
+    ...mapGetters('workspace', ['currentWorkspace', 'currentWorkspaceProperties']),
+
+    columns: {
+      get() {
+        return this.currentWorkspace.data.columns;
+      },
+      set(columns) {
+        this.updateColumns(setItemOrder(columns));
+      },
     },
     computedWorkspaceStyle() {
       return this.currentWorkspace ? {
-        backgroundImage: this.currentWorkspace.data.properties.backgroundImage.file ? `url(${this.currentWorkspace.data.properties.backgroundImage.file})` : null,
-        backgroundColor: this.currentWorkspace.data.properties.backgroundColor,
+        backgroundImage: this.currentWorkspaceProperties.backgroundImage.file ? `url(${this.currentWorkspaceProperties.backgroundImage.file})` : null,
+        backgroundColor: this.currentWorkspaceProperties.backgroundColor,
       } : {};
+    },
+    dragOptions() {
+      return {
+        animation: 200,
+        ghostClass: 'ghost',
+        group: 'columns',
+      };
     },
   },
 
@@ -70,6 +93,7 @@ export default {
       'getCurrentWorkspace',
       'createColumn',
       'createCard',
+      'updateColumns',
     ]),
     async onCreateColumn() {
       await this.createColumn();

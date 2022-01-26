@@ -1,6 +1,7 @@
 import firebase from 'firebase/compat/app';
 import { cardInstance, columnInstance, workspaceInstance } from '@/store/modules/workspace/config';
-import { convertDatabaseListToClientFormat } from '@/_utils/database';
+import { convertDatabaseListToClientFormat, convertListToDatabaseFormat } from '@/_utils/database';
+import { cloneDeep, defaultsDeep } from 'lodash';
 
 export default {
   namespaced: true,
@@ -15,13 +16,28 @@ export default {
   mutations: {
     // region workspaces
     setCurrentWorkspace: (state, { uid }) => {
-      state.workspace.current = state.workspace.list.find((workspace) => workspace.uid === uid);
+      if (!uid) {
+        state.workspace.current = null;
+        return;
+      }
+
+      const currentWorkspace = state.workspace.list.find((workspace) => workspace.uid === uid) || {};
+      defaultsDeep(currentWorkspace.data, workspaceInstance());
+
+      const compareFn = (a, b) => (a.data.properties?.order || 0) - (b.data.properties?.order || 0);
+      currentWorkspace.data.columns.sort(compareFn);
+      currentWorkspace.data.columns.forEach((column) => { column.data.cards.sort(compareFn); });
+
+      state.workspace.current = currentWorkspace;
     },
     updateWorkspaceList: (state, list) => {
       state.workspace.list = list;
     },
     changeWorkspace: (state, properties) => {
       state.workspace.current.data.properties = properties;
+    },
+    removeWorkspace: (state, workspaceIndex) => {
+      state.workspace.list.splice(workspaceIndex, 1);
     },
     // endregion workspaces
 
@@ -36,6 +52,9 @@ export default {
     removeColumn: (state, columnUid) => {
       const index = state.workspace.current.data.columns.findIndex((column) => column.uid === columnUid);
       state.workspace.current.data.columns.splice(index, 1);
+    },
+    updateColumns: (state, columns) => {
+      state.workspace.current.data.columns = columns;
     },
     // endregion columns
 
@@ -52,6 +71,10 @@ export default {
       const card = column.data.cards.find((_card) => _card.uid === cardUid);
       card.data.properties = properties;
     },
+    updateCards: (state, { columnUid, cards }) => {
+      const column = state.workspace.current.data.columns.find((_column) => _column.uid === columnUid);
+      column.data.cards = cards;
+    },
     removeCard: (state, { columnUid, cardUid }) => {
       const column = state.workspace.current.data.columns.find((_column) => _column.uid === columnUid);
       const cardIndex = column.data.cards.findIndex((card) => card.uid === cardUid);
@@ -64,14 +87,14 @@ export default {
     // region workspaces
     changeWorkspace: async ({ dispatch, commit, state }, properties) => {
       const uid = await dispatch('user/getUid', {}, { root: true });
+      const oldProperties = cloneDeep(properties);
 
+      commit('changeWorkspace', properties);
       return firebase
         .database()
         .ref(`/users/${uid}/workspaces/${state.workspace.current.uid}/properties`)
         .update(properties)
-        .then(() => {
-          commit('changeWorkspace', properties);
-        });
+        .catch(() => { commit('changeWorkspace', oldProperties); });
     },
     getCurrentWorkspace: async ({ dispatch, commit, state }) => {
       const uid = await dispatch('user/getUid', {}, { root: true });
@@ -89,7 +112,9 @@ export default {
       const uid = await dispatch('user/getUid', {}, { root: true });
       return firebase.database().ref(`/users/${uid}/currentWorkspace`)
         .set(workspace.uid)
-        .then(() => { commit('setCurrentWorkspace', { data: workspace.data, uid: workspace.uid }); });
+        .then(() => {
+          commit('setCurrentWorkspace', { data: workspace.data, uid: workspace.uid });
+        });
     },
     fetchWorkspaceList: async ({ dispatch, commit }) => {
       const uid = await dispatch('user/getUid', {}, { root: true });
@@ -116,6 +141,20 @@ export default {
               });
             });
         });
+    },
+    removeCurrentWorkspace: async ({ dispatch, commit, state }) => {
+      const uid = await dispatch('user/getUid', {}, { root: true });
+      const currentWorkspace = cloneDeep(state.workspace.current);
+      const currentWorkspaceIndex = state.workspace.list.findIndex((workspace) => workspace.uid === state.workspace.current.uid);
+      const nextWorkspace = state.workspace.list[currentWorkspaceIndex + 1] || state.workspace.list[currentWorkspaceIndex - 1];
+
+      dispatch('setCurrentWorkspace', { uid: nextWorkspace?.uid, data: nextWorkspace?.data });
+      commit('removeWorkspace', currentWorkspaceIndex);
+      return firebase
+        .database()
+        .ref(`/users/${uid}/workspaces/${currentWorkspace.uid}`)
+        .remove()
+        .catch(() => { commit('setCurrentWorkspace', { uid: currentWorkspace.uid, data: currentWorkspace.data }); });
     },
     // endregion workspaces
 
@@ -155,6 +194,17 @@ export default {
           commit('changeColumn', { columnUid, properties });
         });
     },
+    updateColumns: async ({ dispatch, commit, state }, newColumns) => {
+      const uid = await dispatch('user/getUid', {}, { root: true });
+      const oldColumns = cloneDeep(state.workspace.current.data.columns);
+
+      commit('updateColumns', newColumns);
+      return firebase
+        .database()
+        .ref(`/users/${uid}/workspaces/${state.workspace.current.uid}/columns`)
+        .set(convertListToDatabaseFormat(newColumns, ['cards']))
+        .catch(() => { commit('updateColumns', oldColumns); });
+    },
     // endregion columns
 
     // region cards
@@ -186,6 +236,17 @@ export default {
           commit('changeCard', { columnUid, cardUid, properties });
         });
     },
+    updateCards: async ({ dispatch, commit, state }, { columnUid, cards }) => {
+      const uid = await dispatch('user/getUid', {}, { root: true });
+      const oldColumn = cloneDeep(state.workspace.current.data.columns.find((_column) => _column.uid === columnUid));
+
+      commit('updateCards', { columnUid, cards });
+      return firebase
+        .database()
+        .ref(`/users/${uid}/workspaces/${state.workspace.current.uid}/columns/${columnUid}/cards`)
+        .set(convertListToDatabaseFormat(cards))
+        .catch(() => { commit('updateCards', { columnUid, cards: oldColumn.cards }); });
+    },
     removeCard: async ({ dispatch, commit, state }, { columnUid, cardUid }) => {
       const uid = await dispatch('user/getUid', {}, { root: true });
       return firebase
@@ -200,6 +261,7 @@ export default {
   },
   getters: {
     currentWorkspace: (s) => s.workspace.current,
+    currentWorkspaceProperties: (s) => s.workspace.current?.data.properties || {},
     currentWorkspaceHasImage: (s) => !!s.workspace.current?.data.properties?.backgroundImage?.name,
   },
 };
