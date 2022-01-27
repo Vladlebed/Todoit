@@ -26,17 +26,13 @@ html{
 }
 
 ::-webkit-scrollbar-track {
-  background-color: transparent;
+  background-color: rgba(0,0,0,0.5);
 }
 
 ::-webkit-scrollbar-thumb {
   -webkit-border-radius: 0;
   border-radius: 0;
-  background-color: white;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background-color: gray;
+  background-color: rgba(255,255,255,0.7);
 }
 
 ::-webkit-resizer {
@@ -48,6 +44,6 @@ html{
 
 ::-webkit-scrollbar {
   width: 4px;
-  height: 4px;
+  height: 6px;
 }
 </style>
