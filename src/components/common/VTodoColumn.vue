@@ -1,82 +1,87 @@
 <template>
   <div class="pa-2">
-    <div class="grey lighten-4 pa-2 rounded workspace-column">
-      <div class="d-flex">
-        <v-textarea :value="snapshotProperties.name"
-                    hide-details
-                    rows="1"
-                    auto-grow
-                    solo
-                    dense
-                    flat
-                    :placeholder="$t('columnName')"
-                    @input="onChangeColumn"
-        />
-        <v-menu left offset-y :close-on-content-click="false" origin="center center" transition="scale-transition">
-          <template v-slot:activator="{ on, attrs }">
-            <v-btn text v-bind="attrs" small class="mt-1" v-on="on">
-              <v-icon>mdi-dots-horizontal</v-icon>
-            </v-btn>
-          </template>
-          <v-list>
-            <v-list-item :disabled="!currentWorkspaceProperties.allowCreateNewCard" @click="createCard(column.uid)">
-              {{ $t('createCard') }}
-            </v-list-item>
-            <v-list-item>
-              <v-checkbox :disabled="!currentWorkspaceProperties.allowColumnMove" label="Разрешить перемещение" />
-            </v-list-item>
-            <v-list-item :disabled="!currentWorkspaceProperties.allowColumnRemove" @click="onColumnRemove">
-              {{ $t('removeColumn') }}
-            </v-list-item>
-          </v-list>
-        </v-menu>
+    <div class="workspace-column">
+      <div class="d-flex flex-column workspace-column__inner">
+        <div class="grey d-flex flex-column pa-2 rounded lighten-4 overflow-hidden workspace-column">
+          <div class="d-flex">
+            <v-textarea :value="snapshotProperties.name"
+                        hide-details
+                        rows="1"
+                        auto-grow
+                        solo
+                        dense
+                        flat
+                        :placeholder="$t('columnName')"
+                        @input="onChangeColumn"
+            />
+            <v-menu left offset-y :close-on-content-click="false" origin="center center" transition="scale-transition">
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn text v-bind="attrs" small class="mt-1" v-on="on">
+                  <v-icon>mdi-dots-horizontal</v-icon>
+                </v-btn>
+              </template>
+              <v-list>
+                <v-list-item :disabled="!currentWorkspaceProperties.allowCreateNewCard" @click="onCreateCard(column.uid)">
+                  {{ $t('createCard') }}
+                </v-list-item>
+                <v-list-item>
+                  <v-checkbox :disabled="!currentWorkspaceProperties.allowColumnMove" label="Разрешить перемещение" />
+                </v-list-item>
+                <v-list-item :disabled="!currentWorkspaceProperties.allowColumnRemove" @click="onColumnRemove">
+                  {{ $t('removeColumn') }}
+                </v-list-item>
+              </v-list>
+            </v-menu>
+          </div>
+
+          <draggable v-model="computedCards" ref="columnScrollContainer" v-bind="dragOptions" :disabled="!currentWorkspaceProperties.allowCardMove" class="mt-4 pr-1 overflow-auto">
+            <transition-group tag="div" name="list-complete" class="">
+              <v-todo-card v-for="(card, i) in computedCards"
+                           :key="card.uid"
+                           :card-data="card"
+                           :column="column"
+                           class="list-complete-item"
+                           :class="{'mt-4': i > 0}"
+              />
+            </transition-group>
+          </draggable>
+
+          <v-btn v-if="currentWorkspaceProperties.allowCreateNewCard"
+                 color="primary"
+                 text
+                 width="100%"
+                 small
+                 class="mt-2"
+                 @click="onCreateCard(column.uid)"
+          >
+            {{ $t('createCard') }}
+          </v-btn>
+        </div>
+
+        <v-dialog v-model="deletionConfirmation" width="500">
+          <v-card>
+            <v-card-title class="text-h5 grey lighten-2">
+              {{ $t('dialog.title') }}
+            </v-card-title>
+
+            <v-card-text class="pa-4">
+              {{ $t('dialog.text') }}
+            </v-card-text>
+
+            <v-divider></v-divider>
+
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="primary" text @click="deletionConfirmation = false">
+                {{ $t('dialog.cancel') }}
+              </v-btn>
+              <v-btn color="error" text @click="removeColumn(column.uid)">
+                {{ $t('dialog.submit') }}
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
       </div>
-
-      <draggable v-model="computedCards" v-bind="dragOptions" :disabled="!currentWorkspaceProperties.allowCardMove">
-        <transition-group tag="div" name="list-complete">
-          <v-todo-card v-for="(card) in computedCards"
-                       :key="card.uid"
-                       :card-data="card"
-                       :column="column"
-                       class="list-complete-item"
-          />
-        </transition-group>
-      </draggable>
-
-      <v-btn v-if="currentWorkspaceProperties.allowCreateNewCard"
-             color="primary"
-             text
-             width="100%"
-             small
-             class="mt-2"
-             @click="createCard(column.uid)"
-      >
-        {{ $t('createCard') }}
-      </v-btn>
-
-      <v-dialog v-model="deletionConfirmation" width="500">
-        <v-card>
-          <v-card-title class="text-h5 grey lighten-2">
-            {{ $t('dialog.title') }}
-          </v-card-title>
-
-          <v-card-text class="pa-4">
-            {{ $t('dialog.text') }}
-          </v-card-text>
-
-          <v-divider></v-divider>
-
-          <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn color="primary" text @click="deletionConfirmation = false">
-              {{ $t('dialog.cancel') }}
-            </v-btn>
-            <v-btn color="error" text @click="removeColumn(column.uid)">
-              {{ $t('dialog.submit') }}
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
     </div>
   </div>
 </template>
@@ -176,6 +181,15 @@ export default {
     onChangeColumn: debounce(function (ev) {
       this.changeColumn({ columnUid: this.column.uid, properties: { name: ev } });
     }, 300),
+    async onCreateCard() {
+      const columnScrollContainer = this.$refs.columnScrollContainer.$el;
+
+      await this.createCard({ columnUid: this.column.uid, order: this.computedCards.length });
+      columnScrollContainer.scrollTo({
+        top: columnScrollContainer.scrollHeight,
+        behavior: 'smooth',
+      });
+    },
   },
 };
 </script>
@@ -183,5 +197,10 @@ export default {
 <style lang="scss" scoped>
   .workspace-column {
     width: 300px;
+    &__inner {
+      position: absolute;
+      top: 0;
+      bottom: 12px;
+    }
   }
 </style>
