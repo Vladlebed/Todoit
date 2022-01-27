@@ -159,9 +159,9 @@ export default {
     // endregion workspaces
 
     // region columns
-    createColumn: async ({ dispatch, commit, state }) => {
+    createColumn: async ({ dispatch, commit, state }, { order }) => {
       const uid = await dispatch('user/getUid', {}, { root: true });
-      const column = columnInstance();
+      const column = columnInstance(order);
       return firebase
         .database()
         .ref(`/users/${uid}/workspaces/${state.workspace.current.uid}/columns`)
@@ -208,9 +208,9 @@ export default {
     // endregion columns
 
     // region cards
-    createCard: async ({ dispatch, commit, state }, columnUid) => {
+    createCard: async ({ dispatch, commit, state }, { columnUid, order }) => {
       const uid = await dispatch('user/getUid', {}, { root: true });
-      const card = cardInstance();
+      const card = cardInstance(order);
       return firebase
         .database()
         .ref(`/users/${uid}/workspaces/${state.workspace.current.uid}/columns/${columnUid}/cards`)
