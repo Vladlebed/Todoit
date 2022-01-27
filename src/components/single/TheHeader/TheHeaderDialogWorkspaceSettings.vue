@@ -23,7 +23,7 @@
               <v-checkbox v-model="workspacePropertySnapshot.allowCreateNewCard" :label="$t('properties.allowCreateNewCard')" class="mt-0" />
               <v-checkbox v-model="workspacePropertySnapshot.allowCardRemove" :label="$t('properties.allowCardRemove')" class="mt-0" />
               <v-checkbox v-model="workspacePropertySnapshot.allowCardMove" :label="$t('properties.allowCardMove')" class="mt-0" />
-              <v-checkbox v-model="workspacePropertySnapshot.workspaceDisabled" :label="$t('properties.workspaceDisabled')" class="mt-0" />
+<!--              <v-checkbox v-model="workspacePropertySnapshot.workspaceDisabled" :label="$t('properties.workspaceDisabled')" class="mt-0" />-->
               <v-btn color="error" width="100%" @click="onWorkspaceRemove">{{$t('removeWorkspace')}}</v-btn>
             </v-expansion-panel-content>
           </v-expansion-panel>
@@ -138,7 +138,7 @@ export default {
       show: false,
       workspaceName: '',
       workspacePropertySnapshot: {},
-      defaultWorkspaceInstance: workspaceInstance(),
+      defaultWorkspaceInstance: workspaceInstance({}),
       fileLoading: false,
     };
   },
@@ -211,6 +211,7 @@ export default {
 
   watch: {
     'currentWorkspace.data.properties': {
+      immediate: true,
       handler(v) {
         if (v) {
           this.createWorkspacePropertySnapshot();
