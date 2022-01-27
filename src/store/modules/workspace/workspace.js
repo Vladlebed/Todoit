@@ -2,6 +2,7 @@ import firebase from 'firebase/compat/app';
 import { cardInstance, columnInstance, workspaceInstance } from '@/store/modules/workspace/config';
 import { convertDatabaseListToClientFormat, convertListToDatabaseFormat } from '@/_utils/database';
 import { cloneDeep, defaultsDeep } from 'lodash';
+import { generateColor } from '@/_utils/color';
 
 export default {
   namespaced: true,
@@ -22,7 +23,7 @@ export default {
       }
 
       const currentWorkspace = state.workspace.list.find((workspace) => workspace.uid === uid) || {};
-      defaultsDeep(currentWorkspace.data, workspaceInstance());
+      defaultsDeep(currentWorkspace.data, workspaceInstance({}));
 
       const compareFn = (a, b) => (a.data.properties?.order || 0) - (b.data.properties?.order || 0);
       currentWorkspace.data.columns.sort(compareFn);
@@ -106,14 +107,23 @@ export default {
           if (workspace) {
             commit('setCurrentWorkspace', workspace);
           }
+          return workspace;
         });
     },
     setCurrentWorkspace: async ({ dispatch, commit }, workspace) => {
       const uid = await dispatch('user/getUid', {}, { root: true });
+      const methodName = workspace ? 'set' : 'remove';
+
+      if (workspace) {
+        return firebase.database().ref(`/users/${uid}/currentWorkspace`)[methodName](workspace.uid)
+          .then(() => {
+            commit('setCurrentWorkspace', workspace ? { data: workspace.data, uid: workspace.uid } : null);
+          });
+      }
       return firebase.database().ref(`/users/${uid}/currentWorkspace`)
-        .set(workspace.uid)
+        .remove()
         .then(() => {
-          commit('setCurrentWorkspace', { data: workspace.data, uid: workspace.uid });
+          commit('setCurrentWorkspace', {});
         });
     },
     fetchWorkspaceList: async ({ dispatch, commit }) => {
@@ -123,24 +133,21 @@ export default {
           // TODO Сделать рекурсией
           const workspaceList = convertDatabaseListToClientFormat(r.val(), ['columns', 'cards']);
           commit('updateWorkspaceList', workspaceList);
+          return r.val();
         });
     },
     createWorkspace: async ({ dispatch }, workspaceName) => {
       const uid = await dispatch('user/getUid', {}, { root: true });
-      const workspace = workspaceInstance(workspaceName);
+      const workspace = workspaceInstance({ workspaceName, backgroundColor: generateColor() });
       return firebase
         .database()
         .ref(`/users/${uid}/workspaces`)
         .push(workspace)
-        .then((r) => {
-          dispatch('fetchWorkspaceList')
-            .then(() => {
-              dispatch('setCurrentWorkspace', {
-                uid: r.key,
-                data: workspace,
-              });
-            });
-        });
+        .then((r) => dispatch('fetchWorkspaceList')
+          .then(() => dispatch('setCurrentWorkspace', {
+            uid: r.key,
+            data: workspace,
+          })));
     },
     removeCurrentWorkspace: async ({ dispatch, commit, state }) => {
       const uid = await dispatch('user/getUid', {}, { root: true });
@@ -148,7 +155,8 @@ export default {
       const currentWorkspaceIndex = state.workspace.list.findIndex((workspace) => workspace.uid === state.workspace.current.uid);
       const nextWorkspace = state.workspace.list[currentWorkspaceIndex + 1] || state.workspace.list[currentWorkspaceIndex - 1];
 
-      dispatch('setCurrentWorkspace', { uid: nextWorkspace?.uid, data: nextWorkspace?.data });
+      dispatch('setCurrentWorkspace', nextWorkspace ? { uid: nextWorkspace.uid, data: nextWorkspace.data } : null);
+
       commit('removeWorkspace', currentWorkspaceIndex);
       return firebase
         .database()

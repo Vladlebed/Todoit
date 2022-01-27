@@ -57,9 +57,9 @@ export default {
   data() {
     return {
       menu: [
-        {
-          title: this.$t('menu.settings'),
-        },
+        // {
+        //   title: this.$t('menu.settings'),
+        // },
         {
           title: this.$t('menu.logout'),
           action: () => {

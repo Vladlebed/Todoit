@@ -1,6 +1,6 @@
 <template>
-  <v-dialog v-model="show" width="500">
-    <v-card>
+  <v-dialog v-model="show" :persistent="pending" width="500">
+    <v-card v-if="!pending">
       <v-card-title>
         {{$t('title')}}
       </v-card-title>
@@ -21,14 +21,20 @@
         </v-btn>
       </v-card-actions>
     </v-card>
+    <v-card v-else height="300">
+      <v-preloader bg-class="white" loader-class="primary" />
+    </v-card>
   </v-dialog>
 </template>
 
 <script>
 import { mapActions } from 'vuex';
+import VPreloader from '@/components/common/VPreloader';
 
 export default {
   name: 'TheHeaderDialogWorkspaceCreate',
+
+  components: { VPreloader },
 
   i18n: {
     messages: {
@@ -51,6 +57,7 @@ export default {
     return {
       show: false,
       workspaceName: '',
+      pending: false,
     };
   },
 
@@ -67,9 +74,13 @@ export default {
     },
     // endregion dialog
 
-    async onCreateWorkspace() {
-      await this.createWorkspace(this.workspaceName);
-      this.hideDialog();
+    onCreateWorkspace() {
+      this.pending = true;
+      this.createWorkspace(this.workspaceName)
+        .then(() => {
+          this.hideDialog();
+        })
+        .finally(() => { this.pending = false; });
     },
   },
 };

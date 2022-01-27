@@ -24,9 +24,9 @@
                 <v-list-item :disabled="!currentWorkspaceProperties.allowCreateNewCard" @click="onCreateCard(column.uid)">
                   {{ $t('createCard') }}
                 </v-list-item>
-                <v-list-item>
-                  <v-checkbox :disabled="!currentWorkspaceProperties.allowColumnMove" label="Разрешить перемещение" />
-                </v-list-item>
+<!--                <v-list-item>-->
+<!--                  <v-checkbox :disabled="!currentWorkspaceProperties.allowColumnMove" label="Разрешить перемещение" />-->
+<!--                </v-list-item>-->
                 <v-list-item :disabled="!currentWorkspaceProperties.allowColumnRemove" @click="onColumnRemove">
                   {{ $t('removeColumn') }}
                 </v-list-item>

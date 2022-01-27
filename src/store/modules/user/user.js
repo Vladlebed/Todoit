@@ -11,7 +11,11 @@ export default {
     },
     loginWithEmailAndPassword: (ctx, { email, password }) => firebase.auth().signInWithEmailAndPassword(email, password)
       .then(() => { router.push({ name: 'Dashboard' }); }),
-    logOut: () => firebase.auth().signOut()
-      .then(() => { router.push({ name: 'Auth' }); }),
+    logOut: ({ commit }) => firebase.auth().signOut()
+      .then(() => {
+        commit('workspace/setCurrentWorkspace', { uid: null }, { root: true });
+        commit('workspace/updateWorkspaceList', [], { root: true });
+        router.push({ name: 'Auth' });
+      }),
   },
 };

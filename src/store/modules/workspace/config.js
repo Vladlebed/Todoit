@@ -10,7 +10,7 @@ const defaultProperties = (properties = {}) => defaultsDeep(properties, {
   },
 });
 
-export const workspaceInstance = (workspaceName = '') => ({
+export const workspaceInstance = ({ workspaceName = '', backgroundColor = '#1976d2' }) => ({
   properties: defaultProperties({
     name: workspaceName,
     workspaceDisabled: false,
@@ -23,7 +23,7 @@ export const workspaceInstance = (workspaceName = '') => ({
     allowChangeColumnStyle: true,
     allowChangeCardStyle: true,
     allowChangeCardStatus: true,
-    backgroundColor: '#1976D2',
+    backgroundColor,
   }),
   columns: [],
 });
