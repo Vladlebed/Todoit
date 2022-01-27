@@ -1,14 +1,16 @@
 <template>
   <div class="fill-height d-flex flex-column workspace-container" :style="computedWorkspaceStyle">
     <the-header class="flex-grow-0" />
-    <v-container ref="container" class="flex-grow-1 overflow-x-auto overflow-y-hidden" fluid>
+    <v-container class="flex-grow-1 overflow-x-auto overflow-y-hidden" fluid>
       <v-layout v-if="currentWorkspace" class="d-block" column fill-height>
         <draggable v-model="columns"
+                   ref="container"
                    v-bind="dragOptions"
                    draggable=".allow-draggable"
                    :disabled="!currentWorkspaceProperties.allowColumnMove"
+                   class="overflow-y-hidden fill-height"
         >
-          <transition-group class="d-flex fill-height" tag="div" name="list-complete">
+          <transition-group class="d-flex fill-height" style="position: relative" tag="div" name="list-complete">
             <v-todo-column v-for="(column) in columns"
                            :key="column.uid"
                            :column="column"
@@ -16,7 +18,7 @@
             />
             <v-btn v-if="currentWorkspaceProperties.allowCreateNewColumn"
                    color="primary"
-                   class="mt-2 ml-2 create-column-btn"
+                   class="ml-2 create-column-btn"
                    key="createColumnBtn"
                    @click="onCreateColumn"
             >
@@ -96,9 +98,9 @@ export default {
       'updateColumns',
     ]),
     async onCreateColumn() {
-      await this.createColumn();
+      await this.createColumn({ order: this.columns.length });
+      const container = this.$refs.container.$el;
       setTimeout(() => {
-        const { container } = this.$refs;
         container.scrollTo({
           left: container.scrollWidth,
           behavior: 'smooth',

@@ -28,14 +28,17 @@ export const workspaceInstance = (workspaceName = '') => ({
   columns: [],
 });
 
-export const columnInstance = () => ({
-  properties: defaultProperties(),
+export const columnInstance = (order) => ({
+  properties: defaultProperties({
+    order,
+  }),
   cards: [],
 });
 
-export const cardInstance = () => ({
+export const cardInstance = (order = 0) => ({
   properties: defaultProperties({
     isCompleted: '',
     descriptionShow: false,
+    order,
   }),
 });

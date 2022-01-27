@@ -1,5 +1,5 @@
 <template>
-  <v-card class="mt-4 pa-2" elevation="2">
+  <v-card class="pa-2" elevation="2">
     <div class="d-flex">
       <v-textarea v-model="snapshotProperties.name"
                   hide-details
