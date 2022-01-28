@@ -6,7 +6,7 @@
       </v-card-title>
 
       <v-form class="pa-4" @submit.prevent="onCreateWorkspace">
-        <v-text-field v-model="workspaceName"
+        <v-text-field v-model.trim="workspaceName"
                       :label="$t('workspaceCreateInput')"
         />
       </v-form>
