@@ -18,6 +18,7 @@
             />
             <v-btn v-if="currentWorkspaceProperties.allowCreateNewColumn"
                    color="primary"
+                   :loading="pendingOfCreateColumn"
                    class="ml-2 create-column-btn"
                    key="createColumnBtn"
                    @click="onCreateColumn"
@@ -63,6 +64,7 @@ export default {
   data() {
     return {
       loadingStatus: 'loading',
+      pendingOfCreateColumn: false,
     };
   },
 
@@ -110,7 +112,11 @@ export default {
       'updateColumns',
     ]),
     async onCreateColumn() {
+      this.pendingOfCreateColumn = true;
+
       await this.createColumn({ order: this.columns.length });
+      this.pendingOfCreateColumn = false;
+
       const container = this.$refs.container.$el;
       setTimeout(() => {
         container.scrollTo({
