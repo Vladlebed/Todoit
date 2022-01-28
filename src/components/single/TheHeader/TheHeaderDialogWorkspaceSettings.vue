@@ -15,16 +15,30 @@
               {{$t('main')}}
             </v-expansion-panel-header>
             <v-expansion-panel-content>
-              <v-text-field v-model="workspacePropertySnapshot.name" :label="$t('properties.name')" />
-              <v-text-field v-model="workspacePropertySnapshot.description" :label="$t('properties.description')" />
+              <v-text-field v-model.trim="workspacePropertySnapshot.name" :label="$t('properties.name')" />
+              <v-textarea v-model="workspacePropertySnapshot.description"
+                          :label="$t('properties.description')"
+                          hide-details
+                          rows="1"
+                          auto-grow
+                          flat
+              />
+              <v-btn color="error" width="100%" class="mt-4" @click="onWorkspaceRemove">{{$t('removeWorkspace')}}</v-btn>
+            </v-expansion-panel-content>
+          </v-expansion-panel>
+
+          <v-expansion-panel>
+            <v-expansion-panel-header>
+              Опции
+            </v-expansion-panel-header>
+            <v-expansion-panel-content>
               <v-checkbox v-model="workspacePropertySnapshot.allowCreateNewColumn" :label="$t('properties.allowCreateNewColumn')" class="mt-0" />
               <v-checkbox v-model="workspacePropertySnapshot.allowColumnMove" :label="$t('properties.allowColumnMove')" class="mt-0" />
               <v-checkbox v-model="workspacePropertySnapshot.allowColumnRemove" :label="$t('properties.allowColumnRemove')" class="mt-0" />
               <v-checkbox v-model="workspacePropertySnapshot.allowCreateNewCard" :label="$t('properties.allowCreateNewCard')" class="mt-0" />
               <v-checkbox v-model="workspacePropertySnapshot.allowCardRemove" :label="$t('properties.allowCardRemove')" class="mt-0" />
               <v-checkbox v-model="workspacePropertySnapshot.allowCardMove" :label="$t('properties.allowCardMove')" class="mt-0" />
-<!--              <v-checkbox v-model="workspacePropertySnapshot.workspaceDisabled" :label="$t('properties.workspaceDisabled')" class="mt-0" />-->
-              <v-btn color="error" width="100%" @click="onWorkspaceRemove">{{$t('removeWorkspace')}}</v-btn>
+              <!-- <v-checkbox v-model="workspacePropertySnapshot.workspaceDisabled" :label="$t('properties.workspaceDisabled')" class="mt-0" />-->
             </v-expansion-panel-content>
           </v-expansion-panel>
 
