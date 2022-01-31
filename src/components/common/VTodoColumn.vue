@@ -11,6 +11,7 @@
                         solo
                         dense
                         flat
+                        background-color="transparent"
                         :placeholder="$t('columnName')"
                         @input="onChangeColumn"
             />
@@ -21,7 +22,7 @@
                 </v-btn>
               </template>
               <v-list>
-                <v-list-item :disabled="!currentWorkspaceProperties.allowCreateNewCard" @click="onCreateCard(column.uid)">
+                <v-list-item :disabled="!currentWorkspaceProperties.allowCreateNewCard || isFiltered" @click="onCreateCard(column.uid)">
                   {{ $t('createCard') }}
                 </v-list-item>
 <!--                <v-list-item>-->
@@ -34,7 +35,7 @@
             </v-menu>
           </div>
 
-          <draggable v-model="computedCards" ref="columnScrollContainer" v-bind="dragOptions" :disabled="!currentWorkspaceProperties.allowCardMove" class="mt-4 pr-1 overflow-auto">
+          <draggable v-model="computedCards" ref="columnScrollContainer" v-bind="dragOptions" :disabled="!currentWorkspaceProperties.allowCardMove || isFiltered" class="mt-4 pr-1 overflow-auto">
             <transition-group tag="div" name="list-complete" class="">
               <v-todo-card v-for="(card, i) in computedCards"
                            :key="card.uid"
@@ -46,7 +47,7 @@
             </transition-group>
           </draggable>
 
-          <v-btn v-if="currentWorkspaceProperties.allowCreateNewCard"
+          <v-btn v-if="currentWorkspaceProperties.allowCreateNewCard && !isFiltered"
                  color="primary"
                  text
                  width="100%"
@@ -91,6 +92,7 @@ import { mapActions, mapGetters } from 'vuex';
 import VTodoCard from '@/components/common/VTodoCard';
 import { debounce, cloneDeep } from 'lodash';
 import draggable from 'vuedraggable';
+// eslint-disable-next-line no-unused-vars
 import { setItemOrder } from '@/_utils/workspace';
 import '@/assets/draggable.scss';
 
@@ -103,6 +105,10 @@ export default {
     column: {
       type: Object,
       default: () => [],
+    },
+    filters: {
+      type: Object,
+      default: () => ({}),
     },
   },
 
@@ -147,11 +153,14 @@ export default {
 
     computedCards: {
       get() {
-        return this.column.data.cards;
+        return this.filterByFilterName(this.column.data.cards);
       },
       set(cards) {
         this.updateCards({ columnUid: this.column.uid, cards: setItemOrder(cards) });
       },
+    },
+    isFiltered() {
+      return this.computedCards.length !== this.column.data.cards.length;
     },
     dragOptions() {
       return {
@@ -184,11 +193,33 @@ export default {
     async onCreateCard() {
       const columnScrollContainer = this.$refs.columnScrollContainer.$el;
 
-      await this.createCard({ columnUid: this.column.uid, order: this.computedCards.length });
+      await this.createCard({ columnUid: this.column.uid, order: this.column.data.cards.length });
       columnScrollContainer.scrollTo({
         top: columnScrollContainer.scrollHeight,
         behavior: 'smooth',
       });
+    },
+    filterByFilterName(list) {
+      let filteredList = list;
+
+      const mapOfFilterFunctions = {
+        search: (filterValue, _list) => {
+          const regExp = new RegExp(filterValue, 'i');
+          return _list.filter((value) => regExp.test(value.data.properties.name) || regExp.test(value.data.properties.description));
+        },
+        onlyCompleted: (filterValue, _list) => _list.filter((value) => value.data.properties.isCompleted),
+        hasName: (filterValue, _list) => _list.filter((value) => value.data.properties.name),
+        hasDescription: (filterValue, _list) => _list.filter((value) => value.data.properties.description),
+      };
+
+      Object.keys(mapOfFilterFunctions)
+        .forEach((key) => {
+          if (this.filters[key]) {
+            filteredList = mapOfFilterFunctions[key](this.filters[key], filteredList);
+          }
+        });
+
+      return filteredList;
     },
   },
 };

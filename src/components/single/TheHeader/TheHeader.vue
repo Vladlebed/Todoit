@@ -14,7 +14,19 @@
                 full-width
       />
     </div>
+    <div v-if="currentWorkspace && currentWorkspace.uid" class="workspace-select-container">
+      <v-text-field v-model.trim="_search"
+                    dense
+                    hide-details
+                    :dark="currentWorkspaceHasImage"
+                    full-width
+                    placeholder="Поиск"
+      />
+    </div>
 
+    <v-btn color="primary" v-if="currentWorkspace && currentWorkspace.uid" text small @click="showWorkspaceFiltersDialog">
+      <v-icon>mdi-filter</v-icon>
+    </v-btn>
     <v-btn color="primary" v-if="currentWorkspace && currentWorkspace.uid" text small @click="showWorkspaceSettingsDialog">
       <v-icon>mdi-cog</v-icon>
     </v-btn>
@@ -39,6 +51,7 @@
       </v-list>
     </v-menu>
 
+    <the-header-dialog-workspace-filters ref="workspaceFilters" :filters.sync="_filters" />
     <the-header-dialog-workspace-settings ref="workspaceSettings" />
     <the-header-dialog-workspace-create  ref="workspaceCreate" />
   </v-app-bar>
@@ -48,11 +61,20 @@
 import { mapActions, mapState, mapGetters } from 'vuex';
 import TheHeaderDialogWorkspaceSettings from '@/components/single/TheHeader/TheHeaderDialogWorkspaceSettings';
 import TheHeaderDialogWorkspaceCreate from '@/components/single/TheHeader/TheHeaderDialogWorkspaceCreate';
+import TheHeaderDialogWorkspaceFilters from '@/components/single/TheHeader/TheHeaderDialogWorkspaceFilters';
+import { debounce } from 'lodash';
 
 export default {
   name: 'TheHeader',
 
-  components: { TheHeaderDialogWorkspaceSettings, TheHeaderDialogWorkspaceCreate },
+  components: { TheHeaderDialogWorkspaceSettings, TheHeaderDialogWorkspaceCreate, TheHeaderDialogWorkspaceFilters },
+
+  props: {
+    filters: {
+      type: Object,
+      default: () => ({}),
+    },
+  },
 
   data() {
     return {
@@ -112,6 +134,25 @@ export default {
         backgroundColor: 'white',
       };
     },
+    _search: {
+      get() {
+        return this.filters.search;
+      },
+      set: debounce(function (v) {
+        this.$emit('update:filters', {
+          ...this.filters,
+          search: v,
+        });
+      }, 300),
+    },
+    _filters: {
+      get() {
+        return this.filters;
+      },
+      set(v) {
+        this.$emit('update:filters', v);
+      },
+    },
   },
 
   methods: {
@@ -127,6 +168,9 @@ export default {
     },
     showWorkspaceCreateDialog() {
       this.$refs.workspaceCreate.showDialog();
+    },
+    showWorkspaceFiltersDialog() {
+      this.$refs.workspaceFilters.showDialog();
     },
   },
 };
