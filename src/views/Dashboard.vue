@@ -1,6 +1,6 @@
 <template>
   <v-load-content class="fill-height d-flex flex-column workspace-container" :style="computedWorkspaceStyle" :class="{primary: !computedWorkspaceStyle}" :status="loadingStatus">
-    <the-header ref="header" class="flex-grow-0" />
+    <the-header ref="header" class="flex-grow-0" :filters.sync="filters" />
     <v-container class="flex-grow-1 overflow-x-auto overflow-y-hidden" fluid>
       <v-layout v-if="currentWorkspace" class="d-block" column fill-height>
         <draggable v-model="columns"
@@ -14,6 +14,7 @@
             <v-todo-column v-for="(column) in columns"
                            :key="column.uid"
                            :column="column"
+                           :filters="filters"
                            class="list-complete-item allow-draggable"
             />
             <v-btn v-if="currentWorkspaceProperties.allowCreateNewColumn"
@@ -63,6 +64,12 @@ export default {
 
   data() {
     return {
+      filters: {
+        search: '',
+        onlyCompleted: false,
+        hasName: false,
+        hasDescription: false,
+      },
       loadingStatus: 'loading',
       pendingOfCreateColumn: false,
     };
