@@ -1,13 +1,16 @@
 import Vue from 'vue';
 import firebase from 'firebase/compat';
+import Notifications from 'vue-notification';
 import App from './App.vue';
 import './registerServiceWorker';
 import router from './router';
-import store from './store';
 
+import store from './store';
 import vuetify from './plugins/vuetify';
 import 'firebase/database';
 import i18n from './i18n';
+
+Vue.use(Notifications);
 
 // Initialize Firebase
 firebase.initializeApp({
