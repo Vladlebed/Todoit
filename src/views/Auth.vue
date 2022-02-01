@@ -41,6 +41,9 @@ export default {
           placeholder: 'Пароль',
         },
         submit: 'Войти',
+        error: {
+          wrongPassword: 'Неверная почта или пароль',
+        },
       },
       en: {
         logo: 'TODO',
@@ -48,6 +51,9 @@ export default {
           placeholder: 'Password',
         },
         submit: 'Sign in',
+        error: {
+          wrongPassword: 'Неверная почта или пароль',
+        },
       },
     },
   },
@@ -64,7 +70,15 @@ export default {
       this.loginWithEmailAndPassword({
         email: this.email,
         password: this.password,
-      });
+      })
+        .catch(() => {
+          this.password = '';
+          this.$notify({
+            group: 'foo',
+            type: 'error',
+            title: this.$t('error.wrongPassword'),
+          });
+        });
     },
     initFirebaseUI() {
       const uiConfig = {
