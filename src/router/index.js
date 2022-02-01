@@ -9,6 +9,13 @@ const routes = [
     path: '/',
     name: 'Dashboard',
     component: () => import(/* webpackChunkName: "PageDashboard" */ '@/views/Dashboard'),
+    children: [
+      {
+        path: 'u/:userUid/workspace/:workspaceUid',
+        name: 'Workspace',
+        component: () => import(/* webpackChunkName: "Workspace" */ '@/components/single/TheWorkspace/TheWorkspace'),
+      },
+    ],
   },
   {
     path: '/auth',

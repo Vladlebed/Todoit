@@ -29,7 +29,16 @@
 
           <v-expansion-panel>
             <v-expansion-panel-header>
-              Опции
+              {{ $t('privacy') }}
+            </v-expansion-panel-header>
+            <v-expansion-panel-content>
+              <v-checkbox v-model="workspacePropertySnapshot.public" :label="$t('properties.public')" />
+            </v-expansion-panel-content>
+          </v-expansion-panel>
+
+          <v-expansion-panel>
+            <v-expansion-panel-header>
+              {{ $t('options') }}
             </v-expansion-panel-header>
             <v-expansion-panel-content>
               <v-checkbox v-model="workspacePropertySnapshot.allowCreateNewColumn" :label="$t('properties.allowCreateNewColumn')" class="mt-0" />
@@ -98,6 +107,8 @@ export default {
         removeWorkspace: 'Удалить рабочий стол',
         styles: 'Стилизация',
         removeImage: 'Удалить изображение',
+        options: 'Опции',
+        privacy: 'Приватность',
         closeBtn: 'Закрыть',
         cancel: 'Отменить',
         submit: 'Применить',
@@ -115,6 +126,7 @@ export default {
           allowChangeCardStatus: 'Изменение статуса карточек',
           workspaceDisabled: 'Отключить рабочий стол',
           backgroundImage: 'Фоновое изображение',
+          public: 'Рабочий стол доступен для всех',
         },
         changingCardsStatusTooltip: 'После изменения статуса на выполенный, поменять статус будет нельзя',
       },
@@ -124,6 +136,8 @@ export default {
         removeWorkspace: 'Delete workspace',
         styles: 'Stylization',
         removeImage: 'Delete image',
+        options: 'Options',
+        privacy: 'Privacy',
         closeBtn: 'Close',
         cancel: 'cancel',
         submit: 'submit',
@@ -141,6 +155,7 @@ export default {
           allowChangeCardStatus: 'Changing the status of cards',
           workspaceDisabled: 'Disable workspace',
           backgroundImage: 'Background image',
+          public: 'Workspace for everyone',
         },
         changingCardsStatusTooltip: 'After changing the status to completed, it will not be possible to change the status',
       },
