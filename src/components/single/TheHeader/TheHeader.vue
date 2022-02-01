@@ -2,7 +2,7 @@
   <v-app-bar :style="computedHeaderStyle">
 
     <div v-if="workspace.list.length" class="mr-4 ml-1 workspace-select-container">
-      <v-select v-model="currentWorkspace"
+      <v-select v-model="computedCurrentWorkspace"
                 :items="workspace.list"
                 :item-text="(v) => v.data.properties.name"
                 :placeholder="$t('workspaceSelect')"
@@ -14,7 +14,7 @@
                 full-width
       />
     </div>
-    <div v-if="currentWorkspace && currentWorkspace.uid" class="workspace-select-container">
+    <div v-if="computedCurrentWorkspace && computedCurrentWorkspace.uid" class="workspace-select-container">
       <v-text-field v-model.trim="_search"
                     dense
                     hide-details
@@ -24,10 +24,10 @@
       />
     </div>
 
-    <v-btn color="primary" v-if="currentWorkspace && currentWorkspace.uid" text small @click="showWorkspaceFiltersDialog">
+    <v-btn color="primary" v-if="computedCurrentWorkspace && computedCurrentWorkspace.uid" text small @click="showWorkspaceFiltersDialog">
       <v-icon>mdi-filter</v-icon>
     </v-btn>
-    <v-btn color="primary" v-if="currentWorkspace && currentWorkspace.uid" text small @click="showWorkspaceSettingsDialog">
+    <v-btn color="primary" v-if="computedCurrentWorkspace && computedCurrentWorkspace.uid && isOwner" text small @click="showWorkspaceSettingsDialog">
       <v-icon>mdi-cog</v-icon>
     </v-btn>
     <v-btn color="primary" text small @click="showWorkspaceCreateDialog">
@@ -42,7 +42,10 @@
                   v-on="on"
                   color="primary"
                   size="40"
-        ><span class="white--text text-h6">T</span></v-avatar>
+                  :style="userImage"
+        >
+          <span v-if="!userImage" class="white--text text-h6">{{ userName }}</span>
+        </v-avatar>
       </template>
       <v-list>
         <v-list-item v-for="(item, index) in menu" :key="index" link>
@@ -117,11 +120,26 @@ export default {
 
   computed: {
     ...mapState('workspace', ['workspace']),
-    ...mapGetters('workspace', ['currentWorkspaceHasImage']),
+    ...mapState('user', ['user']),
+    ...mapGetters('workspace', ['currentWorkspaceHasImage', 'currentWorkspace']),
 
-    currentWorkspace: {
+    userImage() {
+      return this.user?.photoURL ? { background: `center / cover no-repeat url(${this.user?.photoURL})` } : null;
+    },
+    userName() {
+      let name = this.user.displayName ? `${this.user.displayName[0] + this.user.displayName[1]}` : null;
+      if (!name) {
+        name = this.user.email ? `${this.user.email[0] + this.user.email[1]}` : 'U';
+      }
+      return name;
+    },
+    isOwner() {
+      return this.user.uid === this.$route.params.userUid;
+    },
+
+    computedCurrentWorkspace: {
       get() {
-        return this.workspace.list.find((workspace) => workspace.uid === this.workspace.current?.uid);
+        return this.workspace.list.find((workspace) => workspace.uid === this.workspace.current?.uid) || this.currentWorkspace || {};
       },
       set(v) {
         this.setCurrentWorkspace(v);
