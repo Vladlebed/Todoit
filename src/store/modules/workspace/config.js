@@ -23,6 +23,7 @@ export const workspaceInstance = ({ workspaceName = '', backgroundColor = '#1976
     allowChangeColumnStyle: true,
     allowChangeCardStyle: true,
     allowChangeCardStatus: true,
+    public: false,
     backgroundColor,
   }),
   columns: [],
