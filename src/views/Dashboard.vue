@@ -87,11 +87,30 @@ export default {
       if (workspaceUid) {
         const uid = await this.getUid();
         if (userUid !== uid) {
-          return this.getExternalWorkspace({ workspaceUid, userUid });
+          return this.getExternalWorkspace({ workspaceUid, userUid })
+            .catch((err) => {
+              if (err.code.toLowerCase() === 'permission_denied') {
+                this.$notify({
+                  group: 'foo',
+                  title: 'У вас нет доступа к этому рабочему столу',
+                  type: 'error',
+                });
+              }
+            });
         }
-        console.log('this.workspace.list', this.workspace.list);
+
         const workspace = this.workspace.list.find((_workspace) => _workspace.uid === workspaceUid);
-        return workspace ? this.setCurrentWorkspace(workspace) : this.$router.push({ name: 'Error' });
+
+        if (workspace) {
+          this.setCurrentWorkspace(workspace);
+        } else {
+          this.$notify({
+            group: 'foo',
+            title: 'Рабочий стол не найден или был удалён',
+            type: 'error',
+          });
+          this.$router.push({ name: 'Dashboard' });
+        }
       }
       return this.getCurrentWorkspace();
     },
