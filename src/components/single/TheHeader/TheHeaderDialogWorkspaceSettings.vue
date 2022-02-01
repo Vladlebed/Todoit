@@ -29,6 +29,15 @@
 
           <v-expansion-panel>
             <v-expansion-panel-header>
+              Приватность
+            </v-expansion-panel-header>
+            <v-expansion-panel-content>
+              <v-checkbox v-model="workspacePropertySnapshot.public" label="Рабочий стол доступен для всех" />
+            </v-expansion-panel-content>
+          </v-expansion-panel>
+
+          <v-expansion-panel>
+            <v-expansion-panel-header>
               Опции
             </v-expansion-panel-header>
             <v-expansion-panel-content>
