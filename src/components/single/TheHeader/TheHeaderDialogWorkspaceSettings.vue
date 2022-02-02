@@ -1,6 +1,6 @@
 <template>
-  <v-dialog v-model="show" width="500">
-    <v-card>
+  <v-dialog v-model="show" :persistent="pending" width="500">
+    <v-card v-if="!pending">
       <v-card-title class="text-h5 grey lighten-2">
         {{ $t('title') }}
       </v-card-title>
@@ -87,6 +87,9 @@
         </v-btn>
       </v-card-actions>
     </v-card>
+    <v-card v-else height="300">
+      <v-preloader bg-class="white" loader-class="primary" />
+    </v-card>
   </v-dialog>
 </template>
 
@@ -95,9 +98,12 @@ import { mapActions, mapState } from 'vuex';
 import { cloneDeep, isEqual } from 'lodash';
 import { workspaceInstance } from '@/store/modules/workspace/config';
 import { getBase64 } from '@/_utils/file';
+import VPreloader from '@/components/common/VPreloader';
 
 export default {
   name: 'TheHeaderDialog',
+
+  components: { VPreloader },
 
   i18n: {
     messages: {
@@ -169,6 +175,7 @@ export default {
       workspacePropertySnapshot: {},
       defaultWorkspaceInstance: workspaceInstance({}),
       fileLoading: false,
+      pending: false,
     };
   },
 
@@ -223,8 +230,22 @@ export default {
       }
     },
     saveWorkspaceProperties() {
-      this.changeWorkspace(this.workspacePropertySnapshot);
-      this.createWorkspacePropertySnapshot();
+      this.pending = true;
+      this.changeWorkspace(this.workspacePropertySnapshot)
+        .then(() => {
+          this.hideDialog();
+          this.createWorkspacePropertySnapshot();
+        })
+        .catch(() => {
+          this.$notify({
+            group: 'foo',
+            type: 'error',
+            title: 'Не удалось применить настройки',
+          });
+        })
+        .finally(() => {
+          this.pending = false;
+        });
     },
     onWorkspaceRemove() {
       this.removeCurrentWorkspace();
