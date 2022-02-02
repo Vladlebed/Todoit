@@ -4,7 +4,7 @@
     <div v-if="workspace.list.length" class="mr-4 ml-1 workspace-select-container">
       <v-select v-model="computedCurrentWorkspace"
                 :items="workspace.list"
-                :item-text="(v) => v.data.properties.name"
+                :item-text="(v) => v.data ? v.data.properties.name : ''"
                 :placeholder="$t('workspaceSelect')"
                 :no-data-text="$t('noData')"
                 :dark="currentWorkspaceHasImage"

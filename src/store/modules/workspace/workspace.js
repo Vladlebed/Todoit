@@ -172,7 +172,7 @@ export default {
       const currentWorkspaceIndex = state.workspace.list.findIndex((workspace) => workspace.uid === state.workspace.current.uid);
       const nextWorkspace = state.workspace.list[currentWorkspaceIndex + 1] || state.workspace.list[currentWorkspaceIndex - 1];
 
-      dispatch('setCurrentWorkspace', nextWorkspace ? { workspaceUid: nextWorkspace.uid, userUid: uid } : null);
+      dispatch('setCurrentWorkspace', nextWorkspace ? { data: nextWorkspace.data, uid: nextWorkspace.uid, userUid: uid } : null);
 
       commit('removeWorkspace', currentWorkspaceIndex);
       return firebase
