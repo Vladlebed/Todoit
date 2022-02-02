@@ -29,6 +29,7 @@ module.exports = {
     'import/extensions': 'off',
     'import/prefer-default-export': 'off',
     'no-plusplus': 'off',
+    'func-names': 'off',
   },
   overrides: [
     {
