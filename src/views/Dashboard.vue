@@ -49,6 +49,8 @@ export default {
     computedWorkspaceStyle() {
       return this.currentWorkspace ? {
         backgroundImage: this.currentWorkspaceProperties.backgroundImage.file ? `url(${this.currentWorkspaceProperties.backgroundImage.file})` : null,
+        backgroundPosition: this.currentWorkspaceProperties.backgroundImage.position,
+        backgroundSize: this.currentWorkspaceProperties.backgroundImage.size,
         backgroundColor: this.currentWorkspaceProperties.backgroundColor,
       } : null;
     },
