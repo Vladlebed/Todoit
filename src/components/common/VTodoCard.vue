@@ -96,7 +96,7 @@ export default {
   },
 
   created() {
-    this.snapshotProperties = cloneDeep(this.cardData.data.properties);
+    this.createPropertiesSnapshot();
     this.$watch('snapshotProperties', debounce((ev) => {
       this.changeCard({ columnUid: this.column.uid, cardUid: this.cardData.uid, properties: ev });
     }, 300), { deep: true });
@@ -111,9 +111,18 @@ export default {
         cardUid: this.cardData.uid,
       });
     },
+    createPropertiesSnapshot() {
+      this.snapshotProperties = cloneDeep(this.cardData.data.properties);
+    },
     // debouncedSaveproperties: debounce(function (ev) {
     //   this.changeCard({ columnUid: this.column.uid, cardUid: this.cardData.uid, properties: ev });
     // }, 300),
+  },
+
+  watch: {
+    cardData() {
+      this.createPropertiesSnapshot();
+    },
   },
 };
 </script>

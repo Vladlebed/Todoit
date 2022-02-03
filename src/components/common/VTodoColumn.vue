@@ -156,7 +156,8 @@ export default {
         return this.filterByFilterName(this.column.data.cards);
       },
       set(cards) {
-        this.updateCards({ columnUid: this.column.uid, cards: setItemOrder(cards) });
+        this.$emit('update-cards', { columnUid: this.column.uid, cards: setItemOrder(cards) });
+        // this.updateCards({ columnUid: this.column.uid, cards: setItemOrder(cards) });
       },
     },
     isFiltered() {
@@ -173,7 +174,7 @@ export default {
   },
 
   created() {
-    this.snapshotProperties = cloneDeep(this.column.data.properties);
+    this.createPropertiesSnapshot();
   },
 
   methods: {
@@ -220,6 +221,15 @@ export default {
         });
 
       return filteredList;
+    },
+    createPropertiesSnapshot() {
+      this.snapshotProperties = cloneDeep(this.column.data.properties);
+    },
+  },
+
+  watch: {
+    column() {
+      this.createPropertiesSnapshot();
     },
   },
 };
