@@ -51,7 +51,7 @@
             </v-expansion-panel-content>
           </v-expansion-panel>
 
-          <v-expansion-panel>
+          <v-expansion-panel @change="writingElementWidths">
             <v-expansion-panel-header>
               {{$t('styles')}}
             </v-expansion-panel-header>
@@ -68,7 +68,7 @@
                               @change="setWorkspaceBackgroundImage"
                 />
                 <div v-else>
-                  <v-img :src="workspacePropertySnapshot.backgroundImage.file" max-width="100%" />
+                  <div ref="preview" :style="computedWorkspaceStyle" />
                   <v-radio-group v-model="workspacePropertySnapshot.backgroundImage.size" :label="$t('properties.backgroundImage.size.label')">
                     <v-radio v-for="(size, i) in allowedSizesList" :key="i" :label="$t(`properties.backgroundImage.size.${size}`)" :value="size" />
                   </v-radio-group>
@@ -217,11 +217,30 @@ export default {
       defaultWorkspaceInstance: workspaceInstance({}),
       fileLoading: false,
       pending: false,
+
+      previewWidth: 1,
+      windowWidth: 1,
+      windowHeight: 1,
     };
   },
 
   computed: {
     ...mapState('workspace', ['workspace']),
+
+    computedPreviewHeight() {
+      const windowAspectRatio = this.windowWidth / this.windowHeight;
+      return `${this.previewWidth / windowAspectRatio}px`;
+    },
+
+    computedWorkspaceStyle() {
+      return this.workspacePropertySnapshot?.backgroundImage ? {
+        backgroundImage: this.workspacePropertySnapshot.backgroundImage.file ? `url(${this.workspacePropertySnapshot.backgroundImage.file})` : null,
+        backgroundPosition: this.workspacePropertySnapshot.backgroundImage.position,
+        backgroundSize: this.workspacePropertySnapshot.backgroundImage.size,
+        backgroundColor: this.workspacePropertySnapshot.backgroundColor,
+        height: this.computedPreviewHeight,
+      } : null;
+    },
 
     currentWorkspace: {
       get() {
@@ -234,6 +253,14 @@ export default {
     settingsHasChanges() {
       return !isEqual(this.workspacePropertySnapshot, this.currentWorkspace?.data?.properties);
     },
+  },
+
+  mounted() {
+    window.addEventListener('resize', this.writingElementWidths);
+  },
+
+  beforeDestroy() {
+    window.removeEventListener('resize', this.writingElementWidths);
   },
 
   methods: {
@@ -293,6 +320,14 @@ export default {
     validateFileTypes(v) {
       const validTypes = ['image/jpeg', 'image/png'];
       return validTypes.includes(v?.type);
+    },
+
+    writingElementWidths() {
+      setImmediate(() => {
+        this.previewWidth = this.$refs.preview?.clientWidth || 1;
+        this.windowWidth = window.innerWidth;
+        this.windowHeight = window.innerHeight;
+      });
     },
   },
 
