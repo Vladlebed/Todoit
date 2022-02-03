@@ -287,6 +287,7 @@ export default {
             this.workspacePropertySnapshot.backgroundImage = workspaceInstance({}).properties.backgroundImage;
             this.workspacePropertySnapshot.backgroundImage.file = stringFile;
             this.workspacePropertySnapshot.backgroundImage.name = file.name;
+            this.writingElementWidths();
           })
           .finally(() => { this.fileLoading = false; });
       } else {
