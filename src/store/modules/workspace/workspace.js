@@ -129,7 +129,7 @@ export default {
       const uid = await dispatch('user/getUid', {}, { root: true });
       const methodName = workspace ? 'set' : 'remove';
 
-      return firebase.database().ref(urlFactory.WORKSPACE_CURRENT(uid))[methodName](workspace.uid)
+      return firebase.database().ref(urlFactory.WORKSPACE_CURRENT(uid))[methodName](workspace?.uid)
         .then(() => {
           commit('setCurrentWorkspace', workspace ? { workspaceUid: workspace.uid, userUid: uid } : {});
         });
