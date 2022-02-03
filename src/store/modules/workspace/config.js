@@ -21,7 +21,7 @@ const defaultProperties = (properties = {}) => defaultsDeep(properties, {
   backgroundColor: false,
   backgroundImage: {
     name: '',
-    file: null,
+    file: false,
   },
 });
 
