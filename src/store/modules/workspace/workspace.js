@@ -62,7 +62,7 @@ export default {
       const index = state.workspace.current.data.columns.findIndex((column) => column.uid === columnUid);
       state.workspace.current.data.columns.splice(index, 1);
     },
-    updateColumns: (state, columns) => {
+    setColumns: (state, columns) => {
       state.workspace.current.data.columns = columns;
     },
     // endregion columns
@@ -96,14 +96,12 @@ export default {
     // region workspaces
     changeWorkspace: async ({ dispatch, commit, state }, properties) => {
       const uid = await dispatch('user/getUid', {}, { root: true });
-      const oldProperties = cloneDeep(properties);
 
-      commit('changeWorkspace', properties);
       return firebase
         .database()
         .ref(urlFactory.WORKSPACE_PROPERTIES(uid, state.workspace.current.uid))
         .update(properties)
-        .catch(() => { commit('changeWorkspace', oldProperties); });
+        .then(() => { commit('changeWorkspace', properties); });
     },
     getExternalWorkspace: ({ commit }, { userUid, workspaceUid }) => firebase.database().ref(urlFactory.WORKSPACE(userUid, workspaceUid)).once('value')
       .then((r) => {
@@ -131,23 +129,15 @@ export default {
       const uid = await dispatch('user/getUid', {}, { root: true });
       const methodName = workspace ? 'set' : 'remove';
 
-      if (workspace) {
-        return firebase.database().ref(urlFactory.WORKSPACE_CURRENT(uid))[methodName](workspace.uid)
-          .then(() => {
-            commit('setCurrentWorkspace', workspace ? { workspaceUid: workspace.uid, userUid: uid } : null);
-          });
-      }
-      return firebase.database().ref(urlFactory.WORKSPACE_CURRENT(uid))
-        .remove()
+      return firebase.database().ref(urlFactory.WORKSPACE_CURRENT(uid))[methodName](workspace.uid)
         .then(() => {
-          commit('setCurrentWorkspace', {});
+          commit('setCurrentWorkspace', workspace ? { workspaceUid: workspace.uid, userUid: uid } : {});
         });
     },
     fetchWorkspaceList: async ({ dispatch, commit }) => {
       const uid = await dispatch('user/getUid', {}, { root: true });
       return firebase.database().ref(urlFactory.WORKSPACE_LIST(uid)).once('value')
         .then((r) => {
-          // TODO Сделать рекурсией
           const workspaceList = convertDatabaseListToClientFormat(r.val(), ['columns', 'cards']);
           commit('updateWorkspaceList', workspaceList);
           return r.val();
@@ -184,102 +174,71 @@ export default {
     // endregion workspaces
 
     // region columns
-    createColumn: ({ commit, state }, { order }) => {
+    createColumn: ({ state }, { order }) => {
       const uid = router.currentRoute.params.userUid;
       const column = columnInstance(order);
       return firebase
         .database()
         .ref(urlFactory.COLUMN_LIST(uid, state.workspace.current.uid))
-        .push(column)
-        .then((r) => {
-          commit('addColumn', {
-            uid: r.key,
-            data: column,
-          });
-        });
+        .push(column);
     },
-    removeColumn: ({ commit, state }, columnUid) => {
+    removeColumn: ({ state }, columnUid) => {
       const uid = router.currentRoute.params.userUid;
       return firebase
         .database()
         .ref(urlFactory.COLUMN(uid, state.workspace.current.uid, columnUid))
-        .remove()
-        .then(() => {
-          commit('removeColumn', columnUid);
-        });
+        .remove();
     },
-    changeColumn: ({ commit, state }, { columnUid, properties }) => {
+    changeColumn: ({ state }, { columnUid, properties }) => {
       const uid = router.currentRoute.params.userUid;
 
       return firebase
         .database()
         .ref(urlFactory.COLUMN_PROPERTIES(uid, state.workspace.current.uid, columnUid))
-        .update(properties)
-        .then(() => {
-          commit('changeColumn', { columnUid, properties });
-        });
+        .update(properties);
     },
-    updateColumns: ({ commit, state }, newColumns) => {
+    updateColumns: ({ state }, newColumns) => {
       const uid = router.currentRoute.params.userUid;
-      const oldColumns = cloneDeep(state.workspace.current.data.columns);
-
-      commit('updateColumns', newColumns);
+      console.log('NEW COLUMNS', newColumns);
       return firebase
         .database()
         .ref(urlFactory.COLUMN_LIST(uid, state.workspace.current.uid))
-        .set(convertListToDatabaseFormat(newColumns, ['cards']))
-        .catch(() => { commit('updateColumns', oldColumns); });
+        .set(convertListToDatabaseFormat(newColumns, ['cards']));
+    },
+    setColumns: ({ commit }, columns) => {
+      commit('setColumns', columns);
     },
     // endregion columns
 
     // region cards
-    createCard: ({ commit, state }, { columnUid, order }) => {
+    createCard: ({ state }, { columnUid, order }) => {
       const uid = router.currentRoute.params.userUid;
       const card = cardInstance(order);
       return firebase
         .database()
         .ref(urlFactory.CARD_LIST(uid, state.workspace.current.uid, columnUid))
-        .push(card)
-        .then((r) => {
-          commit('addCard', {
-            columnUid,
-            card: {
-              uid: r.key,
-              data: card,
-            },
-          });
-        });
+        .push(card);
     },
-    changeCard: ({ commit, state }, { columnUid, cardUid, properties }) => {
+    changeCard: ({ state }, { columnUid, cardUid, properties }) => {
       const uid = router.currentRoute.params.userUid;
       return firebase
         .database()
-        .ref(urlFactory.CARD_PROPERTIES(uid, state.workspace.current.uid, columnUid))
-        .update(properties)
-        .then(() => {
-          commit('changeCard', { columnUid, cardUid, properties });
-        });
+        .ref(urlFactory.CARD_PROPERTIES(uid, state.workspace.current.uid, columnUid, cardUid))
+        .update(properties);
     },
-    updateCards: ({ commit, state }, { columnUid, cards }) => {
+    updateCards: ({ state }, { columnUid, cards }) => {
       const uid = router.currentRoute.params.userUid;
-      const oldColumn = cloneDeep(state.workspace.current.data.columns.find((_column) => _column.uid === columnUid));
-
-      commit('updateCards', { columnUid, cards });
       return firebase
         .database()
         .ref(urlFactory.CARD_LIST(uid, state.workspace.current.uid, columnUid))
-        .set(convertListToDatabaseFormat(cards))
-        .catch(() => { commit('updateCards', { columnUid, cards: oldColumn.cards }); });
+        .set(convertListToDatabaseFormat(cards));
     },
-    removeCard: ({ commit, state }, { columnUid, cardUid }) => {
+    removeCard: ({ state }, { columnUid, cardUid }) => {
       const uid = router.currentRoute.params.userUid;
       return firebase
         .database()
-        .ref(urlFactory.CARD(uid, state.workspace.current.uid, columnUid))
-        .remove()
-        .then(() => {
-          commit('removeCard', { columnUid, cardUid });
-        });
+        .ref(urlFactory.CARD(uid, state.workspace.current.uid, columnUid, cardUid))
+        .remove();
     },
     // endregion cards
   },
