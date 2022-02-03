@@ -199,7 +199,6 @@ export default {
     },
     updateColumns: ({ state }, newColumns) => {
       const uid = router.currentRoute.params.userUid;
-      console.log('NEW COLUMNS', newColumns);
       return firebase
         .database()
         .ref(urlFactory.COLUMN_LIST(uid, state.workspace.current.uid))
