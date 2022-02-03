@@ -63,11 +63,20 @@
                 <v-file-input v-if="!workspacePropertySnapshot.backgroundImage.name"
                               :loading="fileLoading"
                               :rules="[validateFileTypes]"
-                              :label="$t('properties.backgroundImage')"
+                              :label="$t('properties.backgroundImage.label')"
                               truncate-length="15"
                               @change="setWorkspaceBackgroundImage"
                 />
-                <v-btn v-else @click="setWorkspaceBackgroundImage(null)">{{$t('removeImage')}}</v-btn>
+                <div v-else>
+                  <v-img :src="workspacePropertySnapshot.backgroundImage.file" max-width="100%" />
+                  <v-radio-group v-model="workspacePropertySnapshot.backgroundImage.size" :label="$t('properties.backgroundImage.size.label')">
+                    <v-radio v-for="(size, i) in allowedSizesList" :key="i" :label="$t(`properties.backgroundImage.size.${size}`)" :value="size" />
+                  </v-radio-group>
+                  <v-radio-group v-model="workspacePropertySnapshot.backgroundImage.position" :label="$t('properties.backgroundImage.position.label')">
+                    <v-radio v-for="(position, i) in allowedPositionList" :key="i" :label="$t(`properties.backgroundImage.position.${position}`)" :value="position" />
+                  </v-radio-group>
+                  <v-btn width="100%" @click="setWorkspaceBackgroundImage(null)">{{$t('removeImage')}}</v-btn>
+                </div>
               </div>
             </v-expansion-panel-content>
           </v-expansion-panel>
@@ -95,13 +104,13 @@
 
 <script>
 import { mapActions, mapState } from 'vuex';
+import { allowedPositionList, allowedSizesList, workspaceInstance } from '@/store/modules/workspace/config';
 import { cloneDeep, isEqual } from 'lodash';
-import { workspaceInstance } from '@/store/modules/workspace/config';
 import { getBase64 } from '@/_utils/file';
 import VPreloader from '@/components/common/VPreloader';
 
 export default {
-  name: 'TheHeaderDialog',
+  name: 'TheHeaderDialogWorkspaceSettings',
 
   components: { VPreloader },
 
@@ -131,7 +140,22 @@ export default {
           allowChangeCardStyle: 'Изменение стиля колонок',
           allowChangeCardStatus: 'Изменение статуса карточек',
           workspaceDisabled: 'Отключить рабочий стол',
-          backgroundImage: 'Фоновое изображение',
+          backgroundImage: {
+            label: 'Фоновое изображение',
+            size: {
+              label: 'Размер',
+              cover: 'Растянутый',
+              contain: 'Сохраняя пропорции',
+            },
+            position: {
+              label: 'Положение',
+              center: 'Центр',
+              left: 'Слева',
+              right: 'Справа',
+              top: 'Сверху',
+              bottom: 'Снизу',
+            },
+          },
           public: 'Рабочий стол доступен для всех',
         },
         changingCardsStatusTooltip: 'После изменения статуса на выполенный, поменять статус будет нельзя',
@@ -160,7 +184,22 @@ export default {
           allowChangeCardStyle: 'Changing column style',
           allowChangeCardStatus: 'Changing the status of cards',
           workspaceDisabled: 'Disable workspace',
-          backgroundImage: 'Background image',
+          backgroundImage: {
+            label: 'Background image',
+            size: {
+              label: 'Size',
+              cover: 'Cover',
+              contain: 'Contain',
+            },
+            position: {
+              label: 'Position',
+              center: 'Center',
+              left: 'Left',
+              right: 'Right',
+              top: 'Top',
+              bottom: 'Bottom',
+            },
+          },
           public: 'Workspace for everyone',
         },
         changingCardsStatusTooltip: 'After changing the status to completed, it will not be possible to change the status',
@@ -170,6 +209,8 @@ export default {
 
   data() {
     return {
+      allowedSizesList,
+      allowedPositionList,
       show: false,
       workspaceName: '',
       workspacePropertySnapshot: {},
@@ -216,17 +257,13 @@ export default {
         this.fileLoading = true;
         getBase64(file)
           .then((stringFile) => {
-            this.workspacePropertySnapshot.backgroundImage = {
-              file: stringFile,
-              name: file.name,
-            };
+            this.workspacePropertySnapshot.backgroundImage = workspaceInstance({}).properties.backgroundImage;
+            this.workspacePropertySnapshot.backgroundImage.file = stringFile;
+            this.workspacePropertySnapshot.backgroundImage.name = file.name;
           })
           .finally(() => { this.fileLoading = false; });
       } else {
-        this.workspacePropertySnapshot.backgroundImage = {
-          file: null,
-          name: '',
-        };
+        this.workspacePropertySnapshot.backgroundImage = workspaceInstance({}).properties.backgroundImage;
       }
     },
     saveWorkspaceProperties() {

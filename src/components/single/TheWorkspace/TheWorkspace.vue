@@ -128,7 +128,6 @@ export default {
             const compareFn = (a, b) => (a.data.properties?.order || 0) - (b.data.properties?.order || 0);
             columns.sort(compareFn);
             columns.forEach((column) => { column.data.cards.sort(compareFn); });
-            console.log('updated columns', columns);
             this.setColumns(columns);
           });
         }
