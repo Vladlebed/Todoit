@@ -67,7 +67,10 @@
                               truncate-length="15"
                               @change="setWorkspaceBackgroundImage"
                 />
-                <v-btn v-else @click="setWorkspaceBackgroundImage(null)">{{$t('removeImage')}}</v-btn>
+                <div v-else>
+                  <v-img :src="workspacePropertySnapshot.backgroundImage.file" max-width="100%" />
+                  <v-btn width="100%" @click="setWorkspaceBackgroundImage(null)">{{$t('removeImage')}}</v-btn>
+                </div>
               </div>
             </v-expansion-panel-content>
           </v-expansion-panel>
