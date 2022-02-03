@@ -15,6 +15,9 @@ export const urlFactory = {
   CARD_PROPERTIES: (userUid, workspaceUid, columnUid, cardUid) => `${urlFactory.COLUMN(userUid, workspaceUid, columnUid)}/cards/${cardUid}/properties`,
 };
 
+export const allowedPositionList = ['center', 'left', 'right', 'top', 'bottom'];
+export const allowedSizesList = ['cover', 'contain'];
+
 const defaultProperties = (properties = {}) => defaultsDeep(properties, {
   name: '',
   description: '',
@@ -22,6 +25,8 @@ const defaultProperties = (properties = {}) => defaultsDeep(properties, {
   backgroundImage: {
     name: '',
     file: false,
+    position: 'center',
+    size: 'cover',
   },
 });
 
