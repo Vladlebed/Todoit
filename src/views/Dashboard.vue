@@ -71,9 +71,6 @@ export default {
     ...mapActions('workspace', [
       'fetchWorkspaceList',
       'getCurrentWorkspace',
-      'createColumn',
-      'createCard',
-      'updateColumns',
       'getExternalWorkspace',
       'setCurrentWorkspace',
     ]),
