@@ -13,6 +13,7 @@
                        :column="column"
                        :filters="filters"
                        class="list-complete-item allow-draggable"
+                       @update-cards="updateCards"
         />
         <v-btn v-if="currentWorkspaceProperties.allowCreateNewColumn"
                color="primary"
@@ -33,6 +34,9 @@ import VTodoColumn from '@/components/common/VTodoColumn';
 import draggable from 'vuedraggable';
 import { setItemOrder } from '@/_utils/workspace';
 import { mapActions, mapGetters } from 'vuex';
+import { createColumnInterceptor } from '@/interceptors/workspace';
+import { urlFactory } from '@/store/modules/workspace/config';
+import { debounce, cloneDeep } from 'lodash';
 import '@/assets/draggable.scss';
 import '@/assets/transition.scss';
 
@@ -62,6 +66,8 @@ export default {
   data() {
     return {
       pendingOfCreateColumn: false,
+
+      cardsChanges: [],
     };
   },
 
@@ -90,6 +96,7 @@ export default {
       'fetchWorkspaceList',
       'createColumn',
       'updateColumns',
+      'setColumns',
     ]),
 
     async onCreateColumn() {
@@ -106,6 +113,40 @@ export default {
         });
       }, 301); // Скролл после завершения анимации
     },
+    updateCards(cardData) {
+      this.cardsChanges.push(cardData);
+    },
+  },
+
+  watch: {
+    'currentWorkspace.uid': {
+      immediate: true,
+      handler(v) {
+        const { userUid } = this.$route.params;
+        if (v && userUid) {
+          createColumnInterceptor(urlFactory.COLUMN_LIST(userUid, v), (columns) => {
+            const compareFn = (a, b) => (a.data.properties?.order || 0) - (b.data.properties?.order || 0);
+            columns.sort(compareFn);
+            columns.forEach((column) => { column.data.cards.sort(compareFn); });
+            console.log('updated columns', columns);
+            this.setColumns(columns);
+          });
+        }
+      },
+    },
+    cardsChanges: debounce(function () {
+      if (this.cardsChanges.length) {
+        const columns = cloneDeep(this.columns);
+
+        this.cardsChanges.forEach((transferData) => {
+          const column = columns.find((_column) => _column.uid === transferData.columnUid);
+          column.data.cards = transferData.cards;
+        });
+
+        this.columns = columns;
+        this.cardsChanges = [];
+      }
+    }, 0),
   },
 };
 </script>
