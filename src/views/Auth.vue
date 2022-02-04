@@ -124,9 +124,10 @@ export default {
       height: 100%;
       width: 100%;
       background: url('../assets/planet.png') no-repeat;
-      background-position: center 50%;
+      background-position: center 60%;
       position: absolute;
       animation: planet 10s linear infinite;
+      background-size: 30%;
     }
     .ground {
       background: url('../assets/ground.png') no-repeat;
