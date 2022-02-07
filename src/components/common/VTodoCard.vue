@@ -2,6 +2,7 @@
   <v-card class="pa-2" elevation="2">
     <div class="d-flex">
       <v-textarea v-model="snapshotProperties.name"
+                  ref="cardName"
                   hide-details
                   rows="1"
                   auto-grow
@@ -9,6 +10,8 @@
                   dense
                   flat
                   :placeholder="$t('name')"
+                  @blur="saveCardProperties"
+                  @keydown.enter="onSaveCardProperty($event, 'cardName')"
       />
       <v-menu left offset-y origin="center center" :close-on-content-click="false" transition="scale-transition">
         <template v-slot:activator="{ on, attrs }">
@@ -18,10 +21,10 @@
         </template>
         <v-list>
           <v-list-item>
-            <v-checkbox v-model="snapshotProperties.isCompleted" :label="$t('isCompleted')" />
+            <v-checkbox v-model="snapshotProperties.isCompleted" :label="$t('isCompleted')" @change="saveCardProperties"/>
           </v-list-item>
           <v-list-item>
-            <v-checkbox v-model="snapshotProperties.descriptionShow" :label="$t('descriptionShow')" />
+            <v-checkbox v-model="snapshotProperties.descriptionShow" :label="$t('descriptionShow')" @change="saveCardProperties"/>
           </v-list-item>
           <v-list-item :disabled="!currentWorkspaceProperties.allowCardRemove" @click="onCardRemove">
             {{ $t('removeCard') }}
@@ -32,6 +35,7 @@
 
     <v-textarea v-if="snapshotProperties.descriptionShow"
                 v-model="snapshotProperties.description"
+                ref="cardDescription"
                 class="mt-2 card-description"
                 :label="$t('description')"
                 hide-details
@@ -40,13 +44,15 @@
                 solo
                 dense
                 flat
+                @blur="saveCardProperties"
+                @keydown.enter="onSaveCardProperty($event, 'cardDescription')"
     />
   </v-card>
 </template>
 
 <script>
 import { mapActions, mapGetters } from 'vuex';
-import { debounce, cloneDeep } from 'lodash';
+import { cloneDeep } from 'lodash';
 
 export default {
   name: 'VTodoCard',
@@ -88,6 +94,8 @@ export default {
   data() {
     return {
       snapshotProperties: {},
+      cardNameIsFocus: false,
+      cardDescriptionIsFocus: false,
     };
   },
 
@@ -97,9 +105,6 @@ export default {
 
   created() {
     this.createPropertiesSnapshot();
-    this.$watch('snapshotProperties', debounce((ev) => {
-      this.changeCard({ columnUid: this.column.uid, cardUid: this.cardData.uid, properties: ev });
-    }, 300), { deep: true });
   },
 
   methods: {
@@ -109,14 +114,31 @@ export default {
       this.removeCard({
         columnUid: this.column.uid,
         cardUid: this.cardData.uid,
+        cardName: this.cardData.data.properties.name,
+        columnName: this.column.data.properties.name,
       });
     },
     createPropertiesSnapshot() {
       this.snapshotProperties = cloneDeep(this.cardData.data.properties);
     },
-    // debouncedSaveproperties: debounce(function (ev) {
-    //   this.changeCard({ columnUid: this.column.uid, cardUid: this.cardData.uid, properties: ev });
-    // }, 300),
+    onSaveCardProperty(ev, propertyName) {
+      if (ev?.shiftKey === true) return;
+      if (ev) ev.preventDefault();
+      this.$refs[propertyName].blur();
+    },
+    saveCardProperties() {
+      if (!this.snapshotProperties.name) {
+        this.createPropertiesSnapshot();
+        return;
+      }
+      this.changeCard({
+        columnUid: this.column.uid,
+        cardUid: this.cardData.uid,
+        newProperties: this.snapshotProperties,
+        oldProperties: this.cardData.data.properties,
+        columnName: this.column.data.properties.name,
+      });
+    },
   },
 
   watch: {
