@@ -15,15 +15,20 @@
                        class="list-complete-item allow-draggable"
                        @update-cards="updateCards"
         />
-        <v-btn v-if="currentWorkspaceProperties.allowCreateNewColumn"
-               color="primary"
-               :loading="pendingOfCreateColumn"
-               class="ml-2 create-column-btn"
-               key="createColumnBtn"
-               @click="onCreateColumn"
-        >
-          {{$t('createColumn')}}
-        </v-btn>
+        <div v-if="currentWorkspaceProperties.allowCreateNewColumn" key="createColumnCard" class="ml-2 list-complete-item">
+          <v-card class="pa-4 lighten-4" style="width: 300px;">
+            <v-text-field v-model.trim="newColumnName" placeholder="Название колонки" background-color="transparent" hide-details solo flat dense @keydown.enter="onCreateColumn"/>
+            <v-btn color="primary"
+                   :loading="pendingOfCreateColumn"
+                   :disabled="!newColumnName"
+                   width="100%"
+                   class="mt-2"
+                   @click="onCreateColumn"
+            >
+              {{$t('createColumn')}}
+            </v-btn>
+          </v-card>
+        </div>
       </transition-group>
     </draggable>
   </v-layout>
@@ -66,6 +71,7 @@ export default {
   data() {
     return {
       pendingOfCreateColumn: false,
+      newColumnName: '',
 
       cardsChanges: [],
     };
@@ -102,8 +108,9 @@ export default {
     async onCreateColumn() {
       this.pendingOfCreateColumn = true;
 
-      await this.createColumn({ order: this.columns.length });
+      await this.createColumn({ order: this.columns.length, name: this.newColumnName });
       this.pendingOfCreateColumn = false;
+      this.newColumnName = '';
 
       const container = this.$refs.container.$el;
       setTimeout(() => {

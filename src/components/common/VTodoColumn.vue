@@ -4,16 +4,20 @@
       <div class="d-flex flex-column workspace-column__inner">
         <div class="grey d-flex flex-column pa-2 rounded lighten-4 overflow-hidden workspace-column">
           <div class="d-flex">
-            <v-textarea :value="snapshotProperties.name"
+            <v-textarea ref="columnName"
+                        v-model.trim="snapshotProperties.name"
                         hide-details
                         rows="1"
                         auto-grow
                         solo
                         dense
                         flat
-                        background-color="transparent"
+                        :outlined="columnNameIsFocus"
+                        :background-color="columnNameIsFocus ? '' : 'transparent'"
                         :placeholder="$t('columnName')"
-                        @input="onChangeColumn"
+                        @focus="columnNameIsFocus = true"
+                        @blur="saveNewColumnName"
+                        @keydown.enter="onSaveNewColumnName"
             />
             <v-menu left offset-y :close-on-content-click="false" origin="center center" transition="scale-transition">
               <template v-slot:activator="{ on, attrs }">
@@ -22,12 +26,6 @@
                 </v-btn>
               </template>
               <v-list>
-                <v-list-item :disabled="!currentWorkspaceProperties.allowCreateNewCard || isFiltered" @click="onCreateCard(column.uid)">
-                  {{ $t('createCard') }}
-                </v-list-item>
-<!--                <v-list-item>-->
-<!--                  <v-checkbox :disabled="!currentWorkspaceProperties.allowColumnMove" label="Разрешить перемещение" />-->
-<!--                </v-list-item>-->
                 <v-list-item :disabled="!currentWorkspaceProperties.allowColumnRemove" @click="onColumnRemove">
                   {{ $t('removeColumn') }}
                 </v-list-item>
@@ -47,16 +45,29 @@
             </transition-group>
           </draggable>
 
-          <v-btn v-if="currentWorkspaceProperties.allowCreateNewCard && !isFiltered"
-                 color="primary"
-                 text
-                 width="100%"
-                 small
-                 class="mt-2"
-                 @click="onCreateCard(column.uid)"
+<!--          <v-divider class="mt-2" />-->
+          <v-text-field v-model.trim="newCardName"
+                        placeholder="Название карточки"
+                        background-color="transparent"
+                        :disabled="pending"
+                        flat
+                        solo
+                        hide-details
+                        @keydown.enter="onCreateCard(column.uid)"
           >
-            {{ $t('createCard') }}
-          </v-btn>
+            <template #append>
+              <v-btn v-if="currentWorkspaceProperties.allowCreateNewCard && !isFiltered"
+                     color="primary"
+                     text
+                     small
+                     :disabled="!newCardName"
+                     :loading="pending"
+                     @click="onCreateCard(column.uid)"
+              >
+                <v-icon>mdi-plus</v-icon>
+              </v-btn>
+            </template>
+          </v-text-field>
         </div>
 
         <v-dialog v-model="deletionConfirmation" width="500">
@@ -90,9 +101,8 @@
 <script>
 import { mapActions, mapGetters } from 'vuex';
 import VTodoCard from '@/components/common/VTodoCard';
-import { debounce, cloneDeep } from 'lodash';
+import { cloneDeep } from 'lodash';
 import draggable from 'vuedraggable';
-// eslint-disable-next-line no-unused-vars
 import { setItemOrder } from '@/_utils/workspace';
 import '@/assets/draggable.scss';
 
@@ -145,6 +155,9 @@ export default {
     return {
       deletionConfirmation: false,
       snapshotProperties: {},
+      newCardName: '',
+      pending: false,
+      columnNameIsFocus: false,
     };
   },
 
@@ -157,7 +170,6 @@ export default {
       },
       set(cards) {
         this.$emit('update-cards', { columnUid: this.column.uid, cards: setItemOrder(cards) });
-        // this.updateCards({ columnUid: this.column.uid, cards: setItemOrder(cards) });
       },
     },
     isFiltered() {
@@ -178,7 +190,7 @@ export default {
   },
 
   methods: {
-    ...mapActions('workspace', ['createCard', 'removeColumn', 'changeColumn', 'updateCards']),
+    ...mapActions('workspace', ['createCard', 'removeColumn', 'renameColumn', 'updateCards']),
     // Column
     onColumnRemove() {
       if (this.column.data.cards.length) {
@@ -187,14 +199,37 @@ export default {
         this.removeColumn(this.column.uid);
       }
     },
-    // eslint-disable-next-line func-names
-    onChangeColumn: debounce(function (ev) {
-      this.changeColumn({ columnUid: this.column.uid, properties: { name: ev } });
-    }, 300),
+    onSaveNewColumnName(ev) {
+      if (ev?.shiftKey === true) return;
+      if (ev) ev.preventDefault();
+      this.$refs.columnName.blur();
+    },
+    saveNewColumnName() {
+      if (this.snapshotProperties.name) {
+        this.renameColumn({
+          columnUid: this.column.uid,
+          properties: { name: this.snapshotProperties.name },
+          newName: this.snapshotProperties.name,
+          oldName: this.column.data.properties.name,
+        });
+      } else {
+        this.createPropertiesSnapshot();
+      }
+      this.columnNameIsFocus = false;
+    },
     async onCreateCard() {
-      const columnScrollContainer = this.$refs.columnScrollContainer.$el;
+      if (!this.newCardName) return;
 
-      await this.createCard({ columnUid: this.column.uid, order: this.column.data.cards.length });
+      this.pending = true;
+      const columnScrollContainer = this.$refs.columnScrollContainer.$el;
+      await this.createCard({
+        name: this.newCardName,
+        columnUid: this.column.uid,
+        order: this.column.data.cards.length,
+        columnName: this.column.data.properties.name,
+      });
+      this.pending = false;
+      this.newCardName = '';
       columnScrollContainer.scrollTo({
         top: columnScrollContainer.scrollHeight,
         behavior: 'smooth',
