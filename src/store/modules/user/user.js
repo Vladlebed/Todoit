@@ -42,4 +42,8 @@ export default {
         router.push({ name: 'Auth' });
       }),
   },
+
+  getters: {
+    user: (s) => s.user,
+  },
 };
