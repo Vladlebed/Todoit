@@ -1,5 +1,11 @@
 import firebase from 'firebase/compat/app';
-import { cardInstance, columnInstance, workspaceInstance, urlFactory } from '@/store/modules/workspace/config';
+import {
+  cardInstance,
+  columnInstance,
+  workspaceInstance,
+  urlFactory,
+  changeInstance,
+} from '@/store/modules/workspace/config';
 import { convertDatabaseListToClientFormat, convertListToDatabaseFormat } from '@/_utils/database';
 import { cloneDeep, defaultsDeep } from 'lodash';
 import { generateColor } from '@/_utils/color';
@@ -171,26 +177,63 @@ export default {
         .remove()
         .catch(() => { commit('setCurrentWorkspace', { workspaceUid: currentWorkspace.uid, userUid: uid }); });
     },
+    addChangeToChangesList: async ({ dispatch, state, rootGetters }, change) => {
+      const uid = await dispatch('user/getUid', {}, { root: true });
+
+      const _change = changeInstance({
+        ...change,
+        userUid: uid,
+        userName: rootGetters['user/user'].displayName || 'Аноним',
+      });
+
+      return firebase
+        .database()
+        .ref(urlFactory.WORKSPACE_CHANGES(uid, state.workspace.current.uid))
+        .push(_change);
+    },
     // endregion workspaces
 
     // region columns
-    createColumn: ({ state }, { order }) => {
+    // eslint-disable-next-line no-unused-vars
+    createColumn: ({ state, dispatch, rootGetters }, { name, order }) => {
       const uid = router.currentRoute.params.userUid;
-      const column = columnInstance(order);
+      const column = columnInstance({ name, order });
+
+      dispatch('addChangeToChangesList', { action: 'COLUMN_CREATE', value: name });
+
       return firebase
         .database()
         .ref(urlFactory.COLUMN_LIST(uid, state.workspace.current.uid))
         .push(column);
     },
-    removeColumn: ({ state }, columnUid) => {
+    removeColumn: ({ state, dispatch }, columnUid) => {
       const uid = router.currentRoute.params.userUid;
+      const columnIndex = state.workspace.current.data.columns.findIndex((column) => column.uid === columnUid);
+
+      dispatch('addChangeToChangesList', {
+        action: 'COLUMN_REMOVE',
+        value: {
+          index: columnIndex,
+          name: state.workspace.current.data.columns[columnIndex].data.properties.name || '',
+        },
+      });
+
       return firebase
         .database()
         .ref(urlFactory.COLUMN(uid, state.workspace.current.uid, columnUid))
         .remove();
     },
-    changeColumn: ({ state }, { columnUid, properties }) => {
+    renameColumn: ({ state, dispatch }, { columnUid, properties, newName, oldName }) => {
       const uid = router.currentRoute.params.userUid;
+
+      dispatch('addChangeToChangesList', ({
+        action: 'COLUMN_RENAME',
+        value: {
+          columnUid,
+          newName,
+          oldName,
+        },
+      }));
 
       return firebase
         .database()
@@ -210,20 +253,55 @@ export default {
     // endregion columns
 
     // region cards
-    createCard: ({ state }, { columnUid, order }) => {
+    createCard: ({ state, dispatch }, { name, columnUid, order, columnName }) => {
       const uid = router.currentRoute.params.userUid;
-      const card = cardInstance(order);
+      const card = cardInstance({ name, order });
+
+      dispatch('addChangeToChangesList', ({
+        action: 'CARD_CREATE',
+        value: {
+          columnUid,
+          name,
+          columnName,
+        },
+      }));
+
       return firebase
         .database()
         .ref(urlFactory.CARD_LIST(uid, state.workspace.current.uid, columnUid))
         .push(card);
     },
-    changeCard: ({ state }, { columnUid, cardUid, properties }) => {
+    changeCard: ({ state, dispatch }, { columnUid, columnName, cardUid, newProperties, oldProperties }) => {
       const uid = router.currentRoute.params.userUid;
+
+      if (newProperties.description !== oldProperties.description) {
+        dispatch('addChangeToChangesList', ({
+          action: newProperties.description ? 'CARD_CHANGE_DESCRIPTION' : 'CARD_REMOVE_DESCRIPTION',
+          value: {
+            columnUid,
+            columnName,
+            cardName: newProperties.name,
+            description: newProperties.description || null,
+          },
+        }));
+      }
+
+      if (newProperties.name !== oldProperties.name) {
+        dispatch('addChangeToChangesList', ({
+          action: 'CARD_RENAME',
+          value: {
+            columnUid,
+            columnName,
+            newCardName: newProperties.name,
+            oldCardName: oldProperties.name,
+          },
+        }));
+      }
+
       return firebase
         .database()
         .ref(urlFactory.CARD_PROPERTIES(uid, state.workspace.current.uid, columnUid, cardUid))
-        .update(properties);
+        .update(newProperties);
     },
     updateCards: ({ state }, { columnUid, cards }) => {
       const uid = router.currentRoute.params.userUid;
@@ -232,8 +310,19 @@ export default {
         .ref(urlFactory.CARD_LIST(uid, state.workspace.current.uid, columnUid))
         .set(convertListToDatabaseFormat(cards));
     },
-    removeCard: ({ state }, { columnUid, cardUid }) => {
+    removeCard: ({ state, dispatch }, { columnUid, cardUid, cardName, columnName }) => {
       const uid = router.currentRoute.params.userUid;
+
+      dispatch('addChangeToChangesList', ({
+        action: 'CARD_REMOVE',
+        value: {
+          columnUid,
+          cardUid,
+          cardName,
+          columnName,
+        },
+      }));
+
       return firebase
         .database()
         .ref(urlFactory.CARD(uid, state.workspace.current.uid, columnUid, cardUid))
