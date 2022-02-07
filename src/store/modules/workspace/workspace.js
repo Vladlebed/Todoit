@@ -183,7 +183,7 @@ export default {
       const _change = changeInstance({
         ...change,
         userUid: uid,
-        userName: rootGetters['user/user'].displayName || 'Аноним',
+        userName: rootGetters['user/user'].displayName || 'Anonim',
       });
 
       return firebase

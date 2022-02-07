@@ -61,6 +61,8 @@ export default {
           CARD_RENAME: 'переименовал(а) карточку "<b>{oldCardName}</b>" в "<b>{newCardName}</b>"',
           CARD_CREATE: 'создал(а) карточку "<b>{cardName}</b>" в колонке "<b>{columnName}</b>"',
           CARD_REMOVE: 'удалил(а) карточку "<b>{cardName}</b>" в колонке "<b>{columnName}</b>"',
+          CARD_INNER_MOVE: 'перенес(ла) карточку "<b>{cardName}</b>" в колонке "<b>{columnName}</b>" на позицию {position}',
+          CARD_OUTER_MOVE: 'перенес(ла) карточку "<b>{cardName}</b>" из колонки "<b>{from}</b>" в колонку "<b>{to}</b>"',
         },
       },
       en: {
@@ -78,6 +80,8 @@ export default {
           CARD_RENAME: 'renamed the card "<b>{oldCardName}</b>" to "<b>{newCardName}</b>"',
           CARD_CREATE: 'created a card "<b>{cardName}</b>" in the column "<b>{columnName}</b>"',
           CARD_REMOVE: 'deleted the card "<b>{cardName}</b>" in the column "<b>{columnName}</b>"',
+          CARD_INNER_MOVE: 'moved card "<b>{cardName}</b>" in column "<b>{columnName}</b>" to position {position}',
+          CARD_OUTER_MOVE: 'moved card "<b>{cardName}</b>" from column "<b>{from}</b>" to column "<b>{to}</b>"',
         },
       },
     },
@@ -123,6 +127,8 @@ export default {
         CARD_RENAME: () => ({ oldCardName: changeData.value.oldCardName, newCardName: changeData.value.newCardName }),
         CARD_CREATE: () => ({ cardName: changeData.value.name, columnName: changeData.value.columnName }),
         CARD_REMOVE: () => ({ cardName: changeData.value.cardName, columnName: changeData.value.columnName }),
+        CARD_INNER_MOVE: () => ({ cardName: changeData.value.card.name, columnName: changeData.value.to.name, position: changeData.value.card.newIndex + 1 }),
+        CARD_OUTER_MOVE: () => ({ cardName: changeData.value.card.name, from: changeData.value.from.name, to: changeData.value.to.name }),
       };
 
       const actionNamePath = `events.${changeData.action}`;
