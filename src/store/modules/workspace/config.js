@@ -1,10 +1,12 @@
 import { defaultsDeep } from 'lodash';
+import { convertDateToClientFormat } from '@/_utils/date';
 
 export const urlFactory = {
   WORKSPACE: (userUid, workspaceUid) => `/users/${userUid}/workspaces/${workspaceUid}`,
   WORKSPACE_LIST: (userUid) => `/users/${userUid}/workspaces`,
   WORKSPACE_PROPERTIES: (userUid, workspaceUid) => `/users/${userUid}/workspaces/${workspaceUid}/properties`,
   WORKSPACE_CURRENT: (userUid) => `/users/${userUid}/currentWorkspace`,
+  WORKSPACE_CHANGES: (userUid, workspaceUid) => `/users/${userUid}/workspaces/${workspaceUid}/changesList`,
 
   COLUMN: (userUid, workspaceUid, columnUid) => `${urlFactory.WORKSPACE(userUid, workspaceUid)}/columns/${columnUid}`,
   COLUMN_LIST: (userUid, workspaceUid) => `${urlFactory.WORKSPACE(userUid, workspaceUid)}/columns`,
@@ -17,6 +19,14 @@ export const urlFactory = {
 
 export const allowedPositionList = ['center', 'left', 'right', 'top', 'bottom'];
 export const allowedSizesList = ['cover', 'contain'];
+
+export const changeInstance = ({ userUid, userName = '', action, value = '' }) => ({
+  userUid,
+  userName,
+  action,
+  value,
+  date: convertDateToClientFormat(new Date(), true),
+});
 
 const defaultProperties = (properties = {}) => defaultsDeep(properties, {
   name: '',
@@ -47,19 +57,24 @@ export const workspaceInstance = ({ workspaceName = '', backgroundColor = '#1976
     backgroundColor,
   }),
   columns: [],
+  changesList: [],
 });
 
-export const columnInstance = (order) => ({
+export const columnInstance = ({ name, order }) => ({
   properties: defaultProperties({
+    name,
     order,
   }),
   cards: [],
+  lastChange: false,
 });
 
-export const cardInstance = (order = 0) => ({
+export const cardInstance = ({ name, order } = 0) => ({
   properties: defaultProperties({
+    name,
     isCompleted: '',
     descriptionShow: false,
     order,
   }),
+  lastChange: false,
 });
