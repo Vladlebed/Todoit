@@ -33,14 +33,21 @@
             </v-menu>
           </div>
 
-          <draggable v-model="computedCards" ref="columnScrollContainer" v-bind="dragOptions" :disabled="!currentWorkspaceProperties.allowCardMove || isFiltered" class="mt-4 pr-1 overflow-auto">
-            <transition-group tag="div" name="list-complete" class="">
+          <draggable v-model="computedCards"
+                     ref="columnScrollContainer"
+                     v-bind="dragOptions"
+                     :disabled="!currentWorkspaceProperties.allowCardMove || isFiltered"
+                     class="mt-4 pr-1 overflow-auto"
+                     @end="onEnd"
+          >
+            <transition-group tag="div" name="list-complete" :data-uid="column.uid">
               <v-todo-card v-for="(card, i) in computedCards"
                            :key="card.uid"
                            :card-data="card"
                            :column="column"
                            class="list-complete-item"
                            :class="{'mt-4': i > 0}"
+                           :data-uid="card.uid"
               />
             </transition-group>
           </draggable>
@@ -162,7 +169,7 @@ export default {
   },
 
   computed: {
-    ...mapGetters('workspace', ['currentWorkspaceProperties']),
+    ...mapGetters('workspace', ['currentWorkspaceProperties', 'currentWorkspace']),
 
     computedCards: {
       get() {
@@ -190,7 +197,7 @@ export default {
   },
 
   methods: {
-    ...mapActions('workspace', ['createCard', 'removeColumn', 'renameColumn', 'updateCards']),
+    ...mapActions('workspace', ['createCard', 'removeColumn', 'renameColumn', 'updateCards', 'addChangeToChangesList']),
     // Column
     onColumnRemove() {
       if (this.column.data.cards.length) {
@@ -259,6 +266,33 @@ export default {
     },
     createPropertiesSnapshot() {
       this.snapshotProperties = cloneDeep(this.column.data.properties);
+    },
+    onEnd(ev) {
+      const inThisColumn = ev.from.dataset.uid === ev.to.dataset.uid;
+
+      if (inThisColumn && ev.newIndex === ev.oldIndex) return;
+
+      this.addChangeToChangesList({
+        action: inThisColumn ? 'CARD_INNER_MOVE' : 'CARD_OUTER_MOVE',
+        value: {
+          card: {
+            uid: ev.item.dataset.uid,
+            name: this.currentWorkspace.data.columns
+              .find((column) => column.uid === ev.from.dataset.uid).data.cards
+              .find((card) => card.uid === ev.item.dataset.uid).data.properties.name,
+            newIndex: ev.newIndex,
+            oldIndex: ev.oldIndex,
+          },
+          from: {
+            uid: ev.from.dataset.uid,
+            name: this.currentWorkspace.data.columns.find((column) => column.uid === ev.from.dataset.uid)?.data.properties.name,
+          },
+          to: {
+            uid: ev.to.dataset.uid,
+            name: this.currentWorkspace.data.columns.find((column) => column.uid === ev.to.dataset.uid)?.data.properties.name,
+          },
+        },
+      });
     },
   },
 
