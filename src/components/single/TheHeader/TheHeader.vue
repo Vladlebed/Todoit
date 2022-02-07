@@ -36,7 +36,9 @@
 
     <v-spacer />
 
-    <v-menu offset-y>
+    <the-header-workspace-changes-list v-if="computedCurrentWorkspace && computedCurrentWorkspace.uid" />
+
+    <v-menu>
       <template v-slot:activator="{ on, attrs }">
         <v-avatar v-bind="attrs"
                   v-on="on"
@@ -65,12 +67,13 @@ import { mapActions, mapState, mapGetters } from 'vuex';
 import TheHeaderDialogWorkspaceSettings from '@/components/single/TheHeader/TheHeaderDialogWorkspaceSettings';
 import TheHeaderDialogWorkspaceCreate from '@/components/single/TheHeader/TheHeaderDialogWorkspaceCreate';
 import TheHeaderDialogWorkspaceFilters from '@/components/single/TheHeader/TheHeaderDialogWorkspaceFilters';
+import TheHeaderWorkspaceChangesList from '@/components/single/TheHeader/TheHeaderWorkspaceChangesList';
 import { debounce } from 'lodash';
 
 export default {
   name: 'TheHeader',
 
-  components: { TheHeaderDialogWorkspaceSettings, TheHeaderDialogWorkspaceCreate, TheHeaderDialogWorkspaceFilters },
+  components: { TheHeaderDialogWorkspaceSettings, TheHeaderDialogWorkspaceCreate, TheHeaderDialogWorkspaceFilters, TheHeaderWorkspaceChangesList },
 
   props: {
     filters: {
