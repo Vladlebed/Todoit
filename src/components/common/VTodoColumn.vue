@@ -53,7 +53,8 @@
           </draggable>
 
 <!--          <v-divider class="mt-2" />-->
-          <v-text-field v-model.trim="newCardName"
+          <v-text-field v-if="currentWorkspaceProperties.allowCreateNewCard && !isFiltered"
+                        v-model.trim="newCardName"
                         placeholder="Название карточки"
                         background-color="transparent"
                         :disabled="pending"
@@ -63,8 +64,7 @@
                         @keydown.enter="onCreateCard(column.uid)"
           >
             <template #append>
-              <v-btn v-if="currentWorkspaceProperties.allowCreateNewCard && !isFiltered"
-                     color="primary"
+              <v-btn color="primary"
                      text
                      small
                      :disabled="!newCardName"

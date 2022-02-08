@@ -136,12 +136,17 @@ export default {
     },
   },
 
-  created() {
-    this.createChangesInterceptor();
-  },
-
   beforeDestroy() {
     off(this.changesInterceptorRef, 'value');
+  },
+
+  watch: {
+    'currentWorkspace.uid': {
+      immediate: true,
+      handler(v) {
+        if (v) this.createChangesInterceptor();
+      },
+    },
   },
 };
 </script>
